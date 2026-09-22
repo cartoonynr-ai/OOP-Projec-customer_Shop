@@ -1,16 +1,27 @@
 """
 ระบบร้านเช่าชุด (Costume Rental Shop Management System)
 Mini Project - OOP
+เวอร์ชัน Streamlit (เว็บแอปที่เขียนด้วย Python ล้วน ไม่ต้องเขียน HTML/CSS/JS เอง)
 
+วิธีรัน:
+    pip install streamlit
+    streamlit run costume_rental_streamlit.py
+
+สรุปตำแหน่งหลักการ OOP (ใช้พูดตอน present ได้เลย):
+- Encapsulation : Costume.__code, __price_per_day ฯลฯ (private) เข้าถึงผ่าน property/setter
+- Inheritance   : WeddingCostume, ThaiCostume, PartyCostume สืบทอดจาก Costume (abstract base)
+- Polymorphism  : costume.calculate_rental_fee(days) และ costume.category()
+                  ถูก override ต่างกันในแต่ละคลาสลูก แต่เรียกผ่าน interface เดียวกัน
+                  (ดูจุดเรียกใช้จริงใน RentalShop.rent_costume)
 """
 
 from abc import ABC, abstractmethod
-import tkinter as tk
-from tkinter import ttk, messagebox
+import streamlit as st
+import pandas as pd
 
 
 # ==========================================================
-# 1) Costume
+# 1) Costume (Abstract base class)
 # ==========================================================
 class Costume(ABC):
     def __init__(self, code, name, size, price_per_day, deposit=0):
@@ -87,7 +98,7 @@ class Costume(ABC):
 
 
 # ==========================================================
-# 2) WeddingCostume
+# 2) WeddingCostume  (Inheritance + Polymorphism)
 # ==========================================================
 class WeddingCostume(Costume):
     def category(self):
@@ -96,12 +107,9 @@ class WeddingCostume(Costume):
     def calculate_rental_fee(self, days):
         return self.price_per_day * days
 
-    def __str__(self):
-        return f"{super().__str__()} | มัดจำ {self.deposit:.0f} บาท"
-
 
 # ==========================================================
-# 3) ThaiCostume
+# 3) ThaiCostume  (Inheritance + Polymorphism)
 # ==========================================================
 class ThaiCostume(Costume):
     def category(self):
@@ -110,15 +118,12 @@ class ThaiCostume(Costume):
     def calculate_rental_fee(self, days):
         total = self.price_per_day * days
         if days >= 3:
-            total *= 0.90
+            total *= 0.90  # ลด 10% ถ้าเช่า >= 3 วัน
         return total
-
-    def __str__(self):
-        return f"{super().__str__()} | ลด 10% ถ้าเช่า >= 3 วัน"
 
 
 # ==========================================================
-# 4) PartyCostume
+# 4) PartyCostume  (Inheritance + Polymorphism)
 # ==========================================================
 class PartyCostume(Costume):
     def category(self):
@@ -127,10 +132,7 @@ class PartyCostume(Costume):
     def calculate_rental_fee(self, days):
         if days <= 0:
             return 0
-        return self.price_per_day + (days - 1) * self.price_per_day * 0.5
-
-    def __str__(self):
-        return f"{super().__str__()} | วันถัดไปลดครึ่งราคา"
+        return self.price_per_day + (days - 1) * self.price_per_day * 0.5  # วันถัดไปครึ่งราคา
 
 
 COSTUME_CLASSES = {
@@ -161,25 +163,65 @@ class Customer:
     def phone(self):
         return self.__phone
 
-    def __str__(self):
-        return f"{self.customer_id} | {self.name} | {self.phone}"
+
+# ==========================================================
+# 6) Rental (1 รายการเช่า)
+# ==========================================================
+class Rental:
+    def __init__(self, rental_id, customer, costume, days, fee):
+        self.__rental_id = rental_id
+        self.__customer = customer
+        self.__costume = costume
+        self.__days = days
+        self.__fee = fee
+        self.__returned = False
+
+    @property
+    def rental_id(self):
+        return self.__rental_id
+
+    @property
+    def customer(self):
+        return self.__customer
+
+    @property
+    def costume(self):
+        return self.__costume
+
+    @property
+    def days(self):
+        return self.__days
+
+    @property
+    def fee(self):
+        return self.__fee
+
+    @property
+    def returned(self):
+        return self.__returned
+
+    def mark_returned(self):
+        self.__returned = True
 
 
 # ==========================================================
-# 6) RentalShop (เฉพาะฟังก์ชันพื้นฐาน)
+# 7) RentalShop (ตรรกะหลักของระบบทั้งหมด)
 # ==========================================================
 class RentalShop:
     def __init__(self, name):
         self.__name = name
         self.__costumes = {}
         self.__customers = {}
+        self.__rentals = {}
         self.__next_costume_no = 1
         self.__next_customer_no = 1
+        self.__next_rental_no = 1
 
     @property
     def name(self):
         return self.__name
 
+    # ---------- Costume ----------
     def add_costume(self, costume_type, name, size, price_per_day, deposit=0):
         cls = COSTUME_CLASSES[costume_type]
         code = f"C{self.__next_costume_no:03d}"
@@ -208,6 +250,10 @@ class RentalShop:
     def all_costumes(self):
         return list(self.__costumes.values())
 
+    def available_costumes(self):
+        return [c for c in self.__costumes.values() if c.available]
+
+    # ---------- Customer ----------
     def add_customer(self, name, phone):
         cid = f"U{self.__next_customer_no:03d}"
         self.__next_customer_no += 1
@@ -218,192 +264,194 @@ class RentalShop:
     def all_customers(self):
         return list(self.__customers.values())
 
+    # ---------- Rental (เช่า/คืน) ----------
+    def rent_costume(self, customer_id, costume_code, days):
+        customer = self.__customers.get(customer_id)
+        if customer is None:
+            raise ValueError("ไม่พบลูกค้า")
+
+        costume = self.__costumes.get(costume_code)
+        if costume is None:
+            raise ValueError("ไม่พบชุด")
+        if not costume.available:
+            raise ValueError("ชุดนี้ถูกเช่าอยู่แล้ว")
+
+        days = int(days)
+        if days <= 0:
+            raise ValueError("จำนวนวันต้องมากกว่า 0")
+
+        # POLYMORPHISM: costume คนละคลาสกัน แต่เรียก method เดียวกัน
+        fee = costume.calculate_rental_fee(days)
+
+        rental_id = f"R{self.__next_rental_no:03d}"
+        self.__next_rental_no += 1
+        rental = Rental(rental_id, customer, costume, days, fee)
+        self.__rentals[rental_id] = rental
+        costume.mark_rented()
+        return rental
+
+    def return_costume(self, rental_id):
+        rental = self.__rentals.get(rental_id)
+        if rental is None:
+            raise ValueError("ไม่พบรายการเช่านี้")
+        if rental.returned:
+            raise ValueError("รายการนี้คืนไปแล้ว")
+        rental.mark_returned()
+        rental.costume.mark_returned()
+        return rental
+
+    def all_rentals(self):
+        return list(self.__rentals.values())
+
 
 # ==========================================================
-# 7) RentalApp (GUI พื้นฐาน)
+# 8) ส่วนหน้าจอ Streamlit
 # ==========================================================
-class RentalApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("ระบบร้านเช่าชุด")
-        self.root.geometry("900x550")
-        self.shop = RentalShop("ร้านเช่าชุดสวยดี")
+st.set_page_config(page_title="ระบบร้านเช่าชุด", page_icon="👗", layout="wide")
 
-        notebook = ttk.Notebook(root)
-        notebook.pack(fill="both", expand=True, padx=8, pady=8)
+# เก็บ RentalShop ไว้ใน session_state เพื่อให้ข้อมูลไม่หายตอน Streamlit รันซ้ำ
+if "shop" not in st.session_state:
+    st.session_state.shop = RentalShop("ร้านเช่าชุดสวยดี")
+shop: RentalShop = st.session_state.shop
 
-        self.tab_costume = ttk.Frame(notebook)
-        self.tab_customer = ttk.Frame(notebook)
-        notebook.add(self.tab_costume, text="คลังชุด")
-        notebook.add(self.tab_customer, text="ลูกค้า")
+# ---------- ธีมสี (ขาว-ดำ-เหลี่ยม ให้เข้าชุดกับเวอร์ชันเว็บ) ----------
+st.markdown(
+    """
+    <style>
+    .stApp { background-color: #f4f3f0; }
+    div[data-testid="stHeader"] { background-color: transparent; }
+    h1, h2, h3 { font-weight: 800 !important; }
+    .stButton>button {
+        background-color: #111111; color: #ffffff; border-radius: 0;
+        border: 1px solid #111111; font-weight: 700;
+    }
+    .stButton>button:hover { background-color: #3a3a3a; color: #ffffff; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-        self.build_costume_tab()
-        self.build_customer_tab()
-        self.refresh_all()
+st.title("👗 ระบบร้านเช่าชุด")
+st.caption("Costume Rental Shop Management System · OOP Mini Project · Streamlit")
 
-    def build_costume_tab(self):
-        form = ttk.LabelFrame(self.tab_costume, text="เพิ่มชุดใหม่")
-        form.pack(fill="x", padx=10, pady=8)
+tab_costume, tab_customer, tab_rental = st.tabs(["คลังชุด", "ลูกค้า", "เช่า / คืนชุด"])
 
-        ttk.Label(form, text="ประเภท").grid(row=0, column=0, padx=5, pady=5)
-        self.cb_type = ttk.Combobox(
-            form, values=list(COSTUME_CLASSES.keys()),
-            state="readonly", width=15
-        )
-        self.cb_type.current(0)
-        self.cb_type.grid(row=0, column=1, padx=5, pady=5)
 
-        ttk.Label(form, text="ชื่อชุด").grid(row=0, column=2, padx=5, pady=5)
-        self.ent_name = ttk.Entry(form, width=18)
-        self.ent_name.grid(row=0, column=3, padx=5, pady=5)
+def costumes_dataframe(costumes):
+    return pd.DataFrame([
+        {
+            "รหัส": c.code, "ประเภท": c.category(), "ชื่อชุด": c.name,
+            "ขนาด": c.size, "ราคา/วัน": c.price_per_day, "มัดจำ": c.deposit,
+            "สถานะ": "ว่าง" if c.available else "ถูกเช่าอยู่",
+        }
+        for c in costumes
+    ])
 
-        ttk.Label(form, text="ไซซ์").grid(row=0, column=4, padx=5, pady=5)
-        self.ent_size = ttk.Entry(form, width=8)
-        self.ent_size.grid(row=0, column=5, padx=5, pady=5)
 
-        ttk.Label(form, text="ราคา/วัน").grid(row=1, column=0, padx=5, pady=5)
-        self.ent_price = ttk.Entry(form, width=12)
-        self.ent_price.grid(row=1, column=1, padx=5, pady=5)
+# ---------------- แท็บ: คลังชุด ----------------
+with tab_costume:
+    with st.form("add_costume_form", clear_on_submit=True):
+        st.subheader("เพิ่มชุดใหม่")
+        c1, c2, c3, c4, c5 = st.columns(5)
+        costume_type = c1.selectbox("ประเภท", list(COSTUME_CLASSES.keys()))
+        name = c2.text_input("ชื่อชุด")
+        size = c3.text_input("ขนาด")
+        price = c4.number_input("ราคา/วัน", min_value=0.0, step=50.0)
+        deposit = c5.number_input("มัดจำ", min_value=0.0, step=100.0)
+        submitted = st.form_submit_button("+ เพิ่มชุด")
+        if submitted:
+            try:
+                if not name or not size:
+                    raise ValueError("กรอกชื่อและขนาดให้ครบ")
+                shop.add_costume(costume_type, name, size, price, deposit)
+                st.success("เพิ่มชุดสำเร็จ")
+            except ValueError as e:
+                st.error(str(e))
 
-        ttk.Label(form, text="มัดจำ").grid(row=1, column=2, padx=5, pady=5)
-        self.ent_deposit = ttk.Entry(form, width=12)
-        self.ent_deposit.insert(0, "0")
-        self.ent_deposit.grid(row=1, column=3, padx=5, pady=5)
+    keyword = st.text_input("ค้นหาชื่อ / ประเภท / รหัสชุด", key="search_costume")
+    costumes = shop.search_costumes(keyword) if keyword else shop.all_costumes()
+    st.dataframe(costumes_dataframe(costumes), width='stretch', hide_index=True)
 
-        ttk.Button(
-            form, text="เพิ่มชุด", command=self.on_add_costume
-        ).grid(row=1, column=5, padx=5, pady=5)
+    if costumes:
+        codes = [c.code for c in shop.all_costumes() if c.available]
+        if codes:
+            del_code = st.selectbox("เลือกรหัสชุดที่จะลบ (เฉพาะชุดว่าง)", [""] + codes)
+            if st.button("ลบชุดที่เลือก") and del_code:
+                try:
+                    shop.remove_costume(del_code)
+                    st.success(f"ลบชุด {del_code} แล้ว")
+                    st.rerun()
+                except ValueError as e:
+                    st.error(str(e))
 
-        search = ttk.Frame(self.tab_costume)
-        search.pack(fill="x", padx=10)
-        self.ent_search = ttk.Entry(search, width=25)
-        self.ent_search.pack(side="left")
-        ttk.Button(
-            search, text="ค้นหา", command=self.on_search
-        ).pack(side="left", padx=5)
-        ttk.Button(
-            search, text="แสดงทั้งหมด", command=self.refresh_costumes
-        ).pack(side="left")
-        ttk.Button(
-            search, text="ลบชุด", command=self.on_delete
-        ).pack(side="right")
 
-        cols = ("code", "type", "name", "size", "price", "deposit")
-        self.tree_costume = ttk.Treeview(
-            self.tab_costume, columns=cols, show="headings", height=15
-        )
-        headers = ["รหัส", "ประเภท", "ชื่อชุด", "ไซซ์", "ราคา/วัน", "มัดจำ"]
-        for col, title in zip(cols, headers):
-            self.tree_costume.heading(col, text=title)
-            self.tree_costume.column(col, width=130, anchor="center")
-        self.tree_costume.pack(fill="both", expand=True, padx=10, pady=8)
+# ---------------- แท็บ: ลูกค้า ----------------
+with tab_customer:
+    with st.form("add_customer_form", clear_on_submit=True):
+        st.subheader("เพิ่มลูกค้า")
+        c1, c2 = st.columns(2)
+        cust_name = c1.text_input("ชื่อ")
+        cust_phone = c2.text_input("เบอร์โทร")
+        submitted = st.form_submit_button("+ เพิ่มลูกค้า")
+        if submitted:
+            if not cust_name or not cust_phone:
+                st.error("กรอกชื่อและเบอร์โทรให้ครบ")
+            else:
+                shop.add_customer(cust_name, cust_phone)
+                st.success("เพิ่มลูกค้าสำเร็จ")
 
-    def build_customer_tab(self):
-        form = ttk.LabelFrame(self.tab_customer, text="เพิ่มลูกค้า")
-        form.pack(fill="x", padx=10, pady=8)
+    customers_df = pd.DataFrame([
+        {"รหัสลูกค้า": c.customer_id, "ชื่อ": c.name, "เบอร์โทร": c.phone}
+        for c in shop.all_customers()
+    ])
+    st.dataframe(customers_df, width='stretch', hide_index=True)
 
-        ttk.Label(form, text="ชื่อ").grid(row=0, column=0, padx=5, pady=5)
-        self.ent_customer_name = ttk.Entry(form, width=25)
-        self.ent_customer_name.grid(row=0, column=1, padx=5, pady=5)
 
-        ttk.Label(form, text="เบอร์โทร").grid(row=0, column=2, padx=5, pady=5)
-        self.ent_phone = ttk.Entry(form, width=20)
-        self.ent_phone.grid(row=0, column=3, padx=5, pady=5)
+# ---------------- แท็บ: เช่า / คืนชุด ----------------
+with tab_rental:
+    st.subheader("ทำรายการเช่าชุด")
+    customer_options = {f"{c.customer_id} - {c.name}": c.customer_id for c in shop.all_customers()}
+    costume_options = {f"{c.code} - {c.name} ({c.category()})": c.code for c in shop.available_costumes()}
 
-        ttk.Button(
-            form, text="เพิ่มลูกค้า", command=self.on_add_customer
-        ).grid(row=0, column=4, padx=5, pady=5)
-
-        cols = ("id", "name", "phone")
-        self.tree_customer = ttk.Treeview(
-            self.tab_customer, columns=cols, show="headings", height=18
-        )
-        for col, title in zip(cols, ["รหัสลูกค้า", "ชื่อ", "เบอร์โทร"]):
-            self.tree_customer.heading(col, text=title)
-            self.tree_customer.column(col, width=180, anchor="center")
-        self.tree_customer.pack(fill="both", expand=True, padx=10, pady=8)
-
-    def on_add_costume(self):
-        try:
-            name = self.ent_name.get().strip()
-            size = self.ent_size.get().strip()
-            price = float(self.ent_price.get())
-            deposit = float(self.ent_deposit.get() or 0)
-            if not name or not size:
-                raise ValueError("กรอกชื่อและไซซ์ให้ครบ")
-
-            self.shop.add_costume(
-                self.cb_type.get(), name, size, price, deposit
-            )
-            self.ent_name.delete(0, tk.END)
-            self.ent_size.delete(0, tk.END)
-            self.ent_price.delete(0, tk.END)
-            self.refresh_all()
-        except ValueError as e:
-            messagebox.showerror("ข้อผิดพลาด", str(e))
-
-    def on_search(self):
-        self.fill_costumes(
-            self.shop.search_costumes(self.ent_search.get())
-        )
-
-    def on_delete(self):
-        selected = self.tree_costume.selection()
-        if not selected:
-            messagebox.showwarning("แจ้งเตือน", "กรุณาเลือกชุด")
-            return
-
-        code = self.tree_costume.item(selected[0])["values"][0]
-        try:
-            self.shop.remove_costume(code)
-            self.refresh_all()
-        except ValueError as e:
-            messagebox.showerror("ข้อผิดพลาด", str(e))
-
-    def on_add_customer(self):
-        name = self.ent_customer_name.get().strip()
-        phone = self.ent_phone.get().strip()
-        if not name or not phone:
-            messagebox.showerror("ข้อผิดพลาด", "กรอกข้อมูลให้ครบ")
-            return
-
-        self.shop.add_customer(name, phone)
-        self.ent_customer_name.delete(0, tk.END)
-        self.ent_phone.delete(0, tk.END)
-        self.refresh_all()
-
-    def fill_costumes(self, costumes):
-        self.tree_costume.delete(*self.tree_costume.get_children())
-        for c in costumes:
-            self.tree_costume.insert(
-                "", tk.END,
-                values=(
-                    c.code, c.category(), c.name, c.size,
-                    f"{c.price_per_day:.0f}", f"{c.deposit:.0f}"
+    with st.form("rent_form"):
+        c1, c2, c3 = st.columns(3)
+        customer_label = c1.selectbox("ลูกค้า", [""] + list(customer_options.keys()))
+        costume_label = c2.selectbox("ชุด (เฉพาะที่ว่าง)", [""] + list(costume_options.keys()))
+        days = c3.number_input("จำนวนวัน", min_value=1, value=1, step=1)
+        submitted = st.form_submit_button("ยืนยันเช่า")
+        if submitted:
+            try:
+                if not customer_label or not costume_label:
+                    raise ValueError("กรุณาเลือกลูกค้าและชุด")
+                rental = shop.rent_costume(
+                    customer_options[customer_label], costume_options[costume_label], days
                 )
-            )
+                st.success(
+                    f"{rental.rental_id}: {rental.customer.name} เช่า {rental.costume.name} "
+                    f"{rental.days} วัน = {rental.fee:.0f} บาท"
+                )
+            except ValueError as e:
+                st.error(str(e))
 
-    def refresh_costumes(self):
-        self.fill_costumes(self.shop.all_costumes())
+    st.divider()
+    rentals = shop.all_rentals()
+    rentals_df = pd.DataFrame([
+        {
+            "รหัสเช่า": r.rental_id, "ลูกค้า": r.customer.name, "ชุด": r.costume.name,
+            "จำนวนวัน": r.days, "ค่าเช่า": r.fee,
+            "สถานะ": "คืนแล้ว" if r.returned else "กำลังเช่า",
+        }
+        for r in rentals
+    ])
+    st.dataframe(rentals_df, width='stretch', hide_index=True)
 
-    def refresh_customers(self):
-        self.tree_customer.delete(*self.tree_customer.get_children())
-        for c in self.shop.all_customers():
-            self.tree_customer.insert(
-                "", tk.END,
-                values=(c.customer_id, c.name, c.phone)
-            )
-
-    def refresh_all(self):
-        self.refresh_costumes()
-        self.refresh_customers()
-
-
-def main():
-    root = tk.Tk()
-    RentalApp(root)
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    main()
+    active_ids = [r.rental_id for r in rentals if not r.returned]
+    if active_ids:
+        return_id = st.selectbox("เลือกรหัสเช่าที่จะคืน", [""] + active_ids)
+        if st.button("คืนชุด") and return_id:
+            try:
+                shop.return_costume(return_id)
+                st.success(f"คืนชุดของรายการ {return_id} แล้ว")
+                st.rerun()
+            except ValueError as e:
+                st.error(str(e))
