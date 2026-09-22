@@ -1,10 +1,28 @@
+"""
+ระบบร้านเช่าชุด (Costume Rental Shop Management System)
+Mini Project - OOP
+เวอร์ชัน Streamlit (เว็บแอปที่เขียนด้วย Python ล้วน ไม่ต้องเขียน HTML/CSS/JS เอง)
+
+วิธีรัน:
+    pip install streamlit
+    streamlit run costume_rental_streamlit.py
+
+สรุปตำแหน่งหลักการ OOP (ใช้พูดตอน present ได้เลย):
+- Encapsulation : Costume.__code, __price_per_day ฯลฯ (private) เข้าถึงผ่าน property/setter
+- Inheritance   : WeddingCostume, ThaiCostume, PartyCostume สืบทอดจาก Costume (abstract base)
+- Polymorphism  : costume.calculate_rental_fee(days) และ costume.category()
+                  ถูก override ต่างกันในแต่ละคลาสลูก แต่เรียกผ่าน interface เดียวกัน
+                  (ดูจุดเรียกใช้จริงใน RentalShop.rent_costume)
+"""
 
 from abc import ABC, abstractmethod
 import streamlit as st
 import pandas as pd
 
 
-
+# ==========================================================
+# 1) Costume (Abstract base class)
+# ==========================================================
 class Costume(ABC):
     def __init__(self, code, name, size, price_per_day, deposit=0):
         self.__code = code
@@ -79,7 +97,9 @@ class Costume(ABC):
         )
 
 
-
+# ==========================================================
+# 2) WeddingCostume  (Inheritance + Polymorphism)
+# ==========================================================
 class WeddingCostume(Costume):
     def category(self):
         return "ชุดแต่งงาน"
@@ -88,7 +108,9 @@ class WeddingCostume(Costume):
         return self.price_per_day * days
 
 
-
+# ==========================================================
+# 3) ThaiCostume  (Inheritance + Polymorphism)
+# ==========================================================
 class ThaiCostume(Costume):
     def category(self):
         return "ชุดไทย"
@@ -100,7 +122,9 @@ class ThaiCostume(Costume):
         return total
 
 
-
+# ==========================================================
+# 4) PartyCostume  (Inheritance + Polymorphism)
+# ==========================================================
 class PartyCostume(Costume):
     def category(self):
         return "ชุดปาร์ตี้"
@@ -118,6 +142,9 @@ COSTUME_CLASSES = {
 }
 
 
+# ==========================================================
+# 5) Customer
+# ==========================================================
 class Customer:
     def __init__(self, customer_id, name, phone):
         self.__id = customer_id
@@ -137,6 +164,9 @@ class Customer:
         return self.__phone
 
 
+# ==========================================================
+# 6) Rental (1 รายการเช่า)
+# ==========================================================
 class Rental:
     def __init__(self, rental_id, customer, costume, days, fee):
         self.__rental_id = rental_id
@@ -174,6 +204,9 @@ class Rental:
         self.__returned = True
 
 
+# ==========================================================
+# 7) RentalShop (ตรรกะหลักของระบบทั้งหมด)
+# ==========================================================
 class RentalShop:
     def __init__(self, name):
         self.__name = name
@@ -231,7 +264,7 @@ class RentalShop:
     def all_customers(self):
         return list(self.__customers.values())
 
-
+    # ---------- Rental (เช่า/คืน) ----------
     def rent_costume(self, customer_id, costume_code, days):
         customer = self.__customers.get(customer_id)
         if customer is None:
@@ -247,6 +280,7 @@ class RentalShop:
         if days <= 0:
             raise ValueError("จำนวนวันต้องมากกว่า 0")
 
+        # POLYMORPHISM: costume คนละคลาสกัน แต่เรียก method เดียวกัน
         fee = costume.calculate_rental_fee(days)
 
         rental_id = f"R{self.__next_rental_no:03d}"
@@ -270,13 +304,40 @@ class RentalShop:
         return list(self.__rentals.values())
 
 
+def seed_shop(shop: "RentalShop") -> None:
+    """เติมข้อมูลตัวอย่าง: ชุด 6 ชิ้น, ลูกค้า 3 คน, ประวัติการเช่า 3 รายการ
+    เรียกผ่านเมธอดจริงของ RentalShop ทุกจุด (ไม่ยัดข้อมูลตรงๆ) เพื่อให้ผ่านการ
+    ตรวจสอบ/คำนวณเดียวกับตอนผู้ใช้กรอกฟอร์มเป๊ะ ๆ และให้ผลตรงกับเวอร์ชันเว็บ"""
+    w1 = shop.add_costume("ชุดแต่งงาน", "ชุดเจ้าสาวขาวลูกไม้", "M", 1800, 3000)
+    shop.add_costume("ชุดแต่งงาน", "ชุดเจ้าบ่าวสูทกรมท่า", "L", 1500, 2500)
+    shop.add_costume("ชุดไทย", "ชุดไทยจักรีสีทอง", "S", 900, 1000)
+    shop.add_costume("ชุดไทย", "ชุดไทยศรีอยุธยาสีชมพู", "M", 850, 1000)
+    shop.add_costume("ชุดปาร์ตี้", "ชุดปาร์ตี้เซคควินแดง", "M", 500, 0)
+    shop.add_costume("ชุดปาร์ตี้", "ชุดฮาโลวีนแม่มด", "L", 450, 0)
 
+    u1 = shop.add_customer("สมชาย ใจดี", "0891234567")
+    u2 = shop.add_customer("วรรณา สุขใจ", "0898765432")
+    u3 = shop.add_customer("ธนกร มั่งมี", "0812223333")
+
+    shop.rent_costume(u1.customer_id, "C002", 2)      # กำลังเช่าอยู่
+    shop.rent_costume(u2.customer_id, "C006", 1)       # กำลังเช่าอยู่
+    r3 = shop.rent_costume(u3.customer_id, w1.code, 3)  # จะคืนด้านล่าง
+    shop.return_costume(r3.rental_id)                  # คืนแล้ว (โชว์ประวัติ)
+
+
+# ==========================================================
+# 8) ส่วนหน้าจอ Streamlit
+# ==========================================================
 st.set_page_config(page_title="ระบบร้านเช่าชุด", layout="wide")
 
+# เก็บ RentalShop ไว้ใน session_state เพื่อให้ข้อมูลไม่หายตอน Streamlit รันซ้ำ
+# เปิดแอปครั้งแรก (ยังไม่มี shop ใน session_state) -> เติมข้อมูลตัวอย่างให้อัตโนมัติ
 if "shop" not in st.session_state:
     st.session_state.shop = RentalShop("ร้านเช่าชุดสวยดี")
+    seed_shop(st.session_state.shop)
 shop: RentalShop = st.session_state.shop
 
+# ---------- ธีมสี ขาว-ดำ-เหลี่ยม (ไม่มีอิโมจิ, มุมคมทุกจุด, ตัวหนังสือหนาเว้นระยะ) ----------
 CUSTOM_CSS = (
     "<style>"
     ":root{--ink:#201126;--ink-soft:#3a2440;--paper:#faf8fb;--card:#ffffff;--accent:#b3435f;--accent-hover:#94324a;--gold:#caa14b;--muted:#7a7182;--line:#e6dfec;}"
@@ -315,13 +376,16 @@ CUSTOM_CSS = (
     ".spec-sub{font-size:11px;color:#9a8ea3;margin-top:2px;}"
     "</style>"
 )
-
+# หมายเหตุสำคัญ: ต้องเขียน CSS ให้อยู่ใน "บรรทัดเดียว" ไม่มีบรรทัดว่างคั่นเลย
+# เพราะ st.markdown ตีความบรรทัดว่างในสตริงเป็นการขึ้นย่อหน้าใหม่แบบ Markdown
+# ถ้ามีบรรทัดว่างอยู่กลาง <style> มันจะตัด CSS ที่เหลือให้โผล่มาเป็นข้อความธรรมดาบนหน้าเว็บ (บั๊กที่เจอ)
 GOOGLE_FONT_LINK = (
     "<link rel='preconnect' href='https://fonts.googleapis.com'>"
     "<link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap' rel='stylesheet'>"
 )
 st.markdown(GOOGLE_FONT_LINK + CUSTOM_CSS, unsafe_allow_html=True)
 
+# ---------- Hero section: หัวข้อใหญ่ + แถบสถิติระบบแบบ live ----------
 _total_costumes = len(shop.all_costumes())
 _available = len(shop.available_costumes())
 _rented = _total_costumes - _available
@@ -367,7 +431,7 @@ def costumes_dataframe(costumes):
     ])
 
 
-
+# ---------------- แท็บ: คลังชุด ----------------
 with tab_costume:
     with st.form("add_costume_form", clear_on_submit=True):
         st.subheader("เพิ่มชุดใหม่")
@@ -404,6 +468,7 @@ with tab_costume:
                     st.error(str(e))
 
 
+# ---------------- แท็บ: ลูกค้า ----------------
 with tab_customer:
     with st.form("add_customer_form", clear_on_submit=True):
         st.subheader("เพิ่มลูกค้า")
@@ -427,6 +492,7 @@ with tab_customer:
     st.dataframe(customers_df, width='stretch', hide_index=True)
 
 
+# ---------------- แท็บ: เช่า / คืนชุด ----------------
 with tab_rental:
     st.subheader("ทำรายการเช่าชุด")
     customer_options = {f"{c.customer_id} - {c.name}": c.customer_id for c in shop.all_customers()}
