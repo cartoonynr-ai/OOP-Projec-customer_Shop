@@ -451,11 +451,13 @@ with tab_customer:
         st.subheader("เพิ่มลูกค้า")
         c1, c2 = st.columns(2)
         cust_name = c1.text_input("ชื่อ")
-        cust_phone = c2.text_input("เบอร์โทร")
+        cust_phone = c2.text_input("เบอร์โทร", placeholder="0891234567", max_chars=10)
         submitted = st.form_submit_button("เพิ่มลูกค้า")
         if submitted:
             if not cust_name or not cust_phone:
                 st.error("กรอกชื่อและเบอร์โทรให้ครบ")
+            elif not cust_phone.isdigit() or len(cust_phone) != 10:
+                st.error("เบอร์โทรต้องเป็นตัวเลข 10 หลักเท่านั้น เช่น 0891234567")
             else:
                 shop.add_customer(cust_name, cust_phone)
                 st.success("เพิ่มลูกค้าสำเร็จ")
