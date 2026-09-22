@@ -337,6 +337,18 @@ CUSTOM_CSS = (
     "div[data-testid='stAlert']{border-radius:0;border:1px solid var(--line);background-color:var(--card) !important;}"
     "div[data-testid='stAlert'] p{color:var(--ink) !important;font-weight:600;}"
     "hr{border-color:var(--line-soft) !important;}"
+    ".hero{background:var(--ink);color:#ffffff;padding:2.4rem 2.6rem 0;margin-bottom:2rem;}"
+    ".hero-mark{display:flex;align-items:center;gap:10px;margin-bottom:1.6rem;}"
+    ".hero-mark-text{font-family:'Kanit',sans-serif;font-weight:700;letter-spacing:2px;font-size:13px;text-transform:uppercase;color:#d8d8d8;}"
+    ".hero-eyebrow{text-transform:uppercase;letter-spacing:3px;font-size:12px;color:#9a9a9a;margin-bottom:12px;}"
+    ".hero-title{font-family:'Kanit',sans-serif;font-weight:800;font-size:2.5rem;line-height:1.15;letter-spacing:-0.5px;margin:0 0 .7rem;}"
+    ".hero-sub{color:#cfcfcf;font-size:15px;max-width:620px;margin:0 0 1.8rem;line-height:1.6;}"
+    ".spec-bar{display:flex;border-top:1px solid #333333;flex-wrap:wrap;}"
+    ".spec-item{flex:1;min-width:140px;padding:1.1rem 1.4rem;border-right:1px solid #333333;}"
+    ".spec-item:last-child{border-right:none;}"
+    ".spec-label{text-transform:uppercase;font-size:10px;letter-spacing:1.5px;color:#8a8a8a;margin-bottom:8px;}"
+    ".spec-value{font-family:'Kanit',sans-serif;font-weight:800;font-size:1.6rem;color:#ffffff;}"
+    ".spec-sub{font-size:11px;color:#8a8a8a;margin-top:3px;}"
     "</style>"
 )
 # หมายเหตุสำคัญ: ต้องเขียน CSS ให้อยู่ใน "บรรทัดเดียว" ไม่มีบรรทัดว่างคั่นเลย
@@ -344,12 +356,41 @@ CUSTOM_CSS = (
 # ถ้ามีบรรทัดว่างอยู่กลาง <style> มันจะตัด CSS ที่เหลือให้โผล่มาเป็นข้อความธรรมดาบนหน้าเว็บ (บั๊กที่เจอ)
 GOOGLE_FONT_LINK = (
     "<link rel='preconnect' href='https://fonts.googleapis.com'>"
-    "<link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap' rel='stylesheet'>"
+    "<link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Kanit:wght@700;800;900&display=swap' rel='stylesheet'>"
 )
 st.markdown(GOOGLE_FONT_LINK + CUSTOM_CSS, unsafe_allow_html=True)
 
-st.title("ระบบร้านเช่าชุด")
-st.caption("Costume Rental Shop Management System · OOP Mini Project · Streamlit")
+# ---------- Hero section: หัวข้อใหญ่ + แถบสถิติระบบแบบ live ----------
+_total_costumes = len(shop.all_costumes())
+_available = len(shop.available_costumes())
+_rented = _total_costumes - _available
+_total_customers = len(shop.all_customers())
+_active_rentals = len([r for r in shop.all_rentals() if not r.returned])
+
+HANGER_ICON = (
+    "<svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='white' "
+    "stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>"
+    "<path d='M12 3a2 2 0 1 1 2 2c0 1-2 2-2 3'/><path d='M12 8l9 6H3l9-6z'/><path d='M3 20h18'/>"
+    "</svg>"
+)
+
+HERO_HTML = (
+    "<div class='hero'>"
+    "<div class='hero-mark'>" + HANGER_ICON + "<span class='hero-mark-text'>COSTUME RENTAL SHOP</span></div>"
+    "<div class='hero-eyebrow'>OOP MINI PROJECT · STREAMLIT</div>"
+    "<div class='hero-title'>จัดการร้านเช่าชุด<br>อย่างเป็นระบบ</div>"
+    "<div class='hero-sub'>เพิ่มชุด ค้นหา เช่า และคืนชุดได้ครบในที่เดียว "
+    "ระบบคำนวณค่าเช่าให้อัตโนมัติตามประเภทชุด พร้อมติดตามสถานะแบบเรียลไทม์</div>"
+    "<div class='spec-bar'>"
+    f"<div class='spec-item'><div class='spec-label'>ชุดทั้งหมด</div><div class='spec-value'>{_total_costumes}</div><div class='spec-sub'>รายการในคลัง</div></div>"
+    f"<div class='spec-item'><div class='spec-label'>ชุดว่าง</div><div class='spec-value'>{_available}</div><div class='spec-sub'>พร้อมให้เช่า</div></div>"
+    f"<div class='spec-item'><div class='spec-label'>กำลังเช่าอยู่</div><div class='spec-value'>{_rented}</div><div class='spec-sub'>ชุดที่ถูกยืมออก</div></div>"
+    f"<div class='spec-item'><div class='spec-label'>ลูกค้า</div><div class='spec-value'>{_total_customers}</div><div class='spec-sub'>คนในระบบ</div></div>"
+    f"<div class='spec-item'><div class='spec-label'>รายการเช่าที่ยังไม่คืน</div><div class='spec-value'>{_active_rentals}</div><div class='spec-sub'>ต้องติดตาม</div></div>"
+    "</div>"
+    "</div>"
+)
+st.markdown(HERO_HTML, unsafe_allow_html=True)
 
 tab_costume, tab_customer, tab_rental = st.tabs(["คลังชุด", "ลูกค้า", "เช่า / คืนชุด"])
 
