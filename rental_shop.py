@@ -307,31 +307,96 @@ class RentalShop:
 # ==========================================================
 # 8) ส่วนหน้าจอ Streamlit
 # ==========================================================
-st.set_page_config(page_title="ระบบร้านเช่าชุด", page_icon="👗", layout="wide")
+st.set_page_config(page_title="ระบบร้านเช่าชุด", layout="wide")
 
 # เก็บ RentalShop ไว้ใน session_state เพื่อให้ข้อมูลไม่หายตอน Streamlit รันซ้ำ
 if "shop" not in st.session_state:
     st.session_state.shop = RentalShop("ร้านเช่าชุดสวยดี")
 shop: RentalShop = st.session_state.shop
 
-# ---------- ธีมสี (ขาว-ดำ-เหลี่ยม ให้เข้าชุดกับเวอร์ชันเว็บ) ----------
+# ---------- ธีมสี ขาว-ดำ-เหลี่ยม (ไม่มีอิโมจิ, มุมคมทุกจุด, ตัวหนังสือหนาเว้นระยะ) ----------
 st.markdown(
     """
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-    .stApp { background-color: #f4f3f0; }
-    div[data-testid="stHeader"] { background-color: transparent; }
-    h1, h2, h3 { font-weight: 800 !important; }
-    .stButton>button {
-        background-color: #111111; color: #ffffff; border-radius: 0;
-        border: 1px solid #111111; font-weight: 700;
+    :root {
+        --ink: #111111;
+        --paper: #f4f3f0;
+        --card: #ffffff;
+        --line: #111111;
+        --line-soft: #d8d6d0;
+        --muted: #6f6f6f;
     }
-    .stButton>button:hover { background-color: #3a3a3a; color: #ffffff; }
+    html, body, [class*="css"] { font-family: 'Prompt', sans-serif; }
+    .stApp { background-color: var(--paper); }
+    div[data-testid="stHeader"] { background-color: transparent; }
+    div[data-testid="stMainBlockContainer"] { padding-top: 2.5rem; }
+
+    /* หัวเรื่อง */
+    h1 {
+        font-weight: 800 !important; letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--line); padding-bottom: 18px;
+    }
+    h2, h3 {
+        font-weight: 700 !important; letter-spacing: 0.3px;
+    }
+    [data-testid="stCaptionContainer"] {
+        text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px !important;
+        color: var(--muted) !important;
+    }
+
+    /* แท็บ: เส้นขีดใต้แบบเมนูเว็บ แทนปุ่มทึบ */
+    button[data-baseweb="tab"] {
+        font-family: 'Prompt', sans-serif; font-weight: 600; font-size: 15px;
+        color: var(--muted); padding: 0 4px 14px 4px !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: var(--ink) !important; font-weight: 700;
+    }
+    div[data-baseweb="tab-highlight"] { background-color: var(--ink) !important; height: 3px !important; }
+    div[data-baseweb="tab-border"] { background-color: var(--line-soft) !important; }
+
+    /* ปุ่ม: เหลี่ยมคม ดำ-ขาว กลับสีตอน hover */
+    .stButton>button, .stFormSubmitButton>button {
+        background-color: var(--ink); color: #ffffff; border-radius: 0;
+        border: 1px solid var(--ink); font-weight: 700; letter-spacing: 0.3px;
+        padding: 0.5rem 1.4rem;
+    }
+    .stButton>button:hover, .stFormSubmitButton>button:hover {
+        background-color: #ffffff; color: var(--ink); border-color: var(--ink);
+    }
+
+    /* ช่องกรอกข้อมูล: เหลี่ยมคม เส้นดำบาง */
+    .stTextInput input, .stNumberInput input, div[data-baseweb="select"] > div {
+        border-radius: 0 !important; border: 1px solid var(--line) !important;
+        font-family: 'Prompt', sans-serif;
+    }
+    .stTextInput label, .stNumberInput label, .stSelectbox label {
+        font-size: 12px !important; font-weight: 600 !important; letter-spacing: 0.5px;
+        text-transform: uppercase; color: var(--muted) !important;
+    }
+
+    /* กรอบฟอร์ม */
+    div[data-testid="stForm"] {
+        border: 1px solid var(--line); border-radius: 0; padding: 1.6rem 1.6rem 0.8rem;
+        background-color: var(--card);
+    }
+
+    /* แจ้งเตือน สำเร็จ/ผิดพลาด แบบ monochrome มีกรอบแทนพื้นสี */
+    div[data-testid="stAlert"] {
+        border-radius: 0; border: 1px solid var(--line); background-color: var(--card) !important;
+    }
+    div[data-testid="stAlert"] p { color: var(--ink) !important; font-weight: 600; }
+
+    /* เส้นคั่น */
+    hr { border-color: var(--line-soft) !important; }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-st.title("👗 ระบบร้านเช่าชุด")
+st.title("ระบบร้านเช่าชุด")
 st.caption("Costume Rental Shop Management System · OOP Mini Project · Streamlit")
 
 tab_costume, tab_customer, tab_rental = st.tabs(["คลังชุด", "ลูกค้า", "เช่า / คืนชุด"])
@@ -358,7 +423,7 @@ with tab_costume:
         size = c3.text_input("ขนาด")
         price = c4.number_input("ราคา/วัน", min_value=0.0, step=50.0)
         deposit = c5.number_input("มัดจำ", min_value=0.0, step=100.0)
-        submitted = st.form_submit_button("+ เพิ่มชุด")
+        submitted = st.form_submit_button("เพิ่มชุด")
         if submitted:
             try:
                 if not name or not size:
@@ -392,7 +457,7 @@ with tab_customer:
         c1, c2 = st.columns(2)
         cust_name = c1.text_input("ชื่อ")
         cust_phone = c2.text_input("เบอร์โทร")
-        submitted = st.form_submit_button("+ เพิ่มลูกค้า")
+        submitted = st.form_submit_button("เพิ่มลูกค้า")
         if submitted:
             if not cust_name or not cust_phone:
                 st.error("กรอกชื่อและเบอร์โทรให้ครบ")
