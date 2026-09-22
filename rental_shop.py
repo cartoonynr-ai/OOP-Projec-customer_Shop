@@ -316,7 +316,83 @@ shop: RentalShop = st.session_state.shop
 
 # ---------- ธีมสี ขาว-ดำ-เหลี่ยม (ไม่มีอิโมจิ, มุมคมทุกจุด, ตัวหนังสือหนาเว้นระยะ) ----------
 st.markdown(
+    """
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --ink: #111111;
+        --paper: #f4f3f0;
+        --card: #ffffff;
+        --line: #111111;
+        --line-soft: #d8d6d0;
+        --muted: #6f6f6f;
+    }
+    html, body, [class*="css"] { font-family: 'Prompt', sans-serif; }
+    .stApp { background-color: var(--paper); }
+    div[data-testid="stHeader"] { background-color: transparent; }
+    div[data-testid="stMainBlockContainer"] { padding-top: 2.5rem; }
 
+    /* หัวเรื่อง */
+    h1 {
+        font-weight: 800 !important; letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--line); padding-bottom: 18px;
+    }
+    h2, h3 {
+        font-weight: 700 !important; letter-spacing: 0.3px;
+    }
+    [data-testid="stCaptionContainer"] {
+        text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px !important;
+        color: var(--muted) !important;
+    }
+
+    /* แท็บ: เส้นขีดใต้แบบเมนูเว็บ แทนปุ่มทึบ */
+    button[data-baseweb="tab"] {
+        font-family: 'Prompt', sans-serif; font-weight: 600; font-size: 15px;
+        color: var(--muted); padding: 0 4px 14px 4px !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: var(--ink) !important; font-weight: 700;
+    }
+    div[data-baseweb="tab-highlight"] { background-color: var(--ink) !important; height: 3px !important; }
+    div[data-baseweb="tab-border"] { background-color: var(--line-soft) !important; }
+
+    /* ปุ่ม: เหลี่ยมคม ดำ-ขาว กลับสีตอน hover */
+    .stButton>button, .stFormSubmitButton>button {
+        background-color: var(--ink); color: #ffffff; border-radius: 0;
+        border: 1px solid var(--ink); font-weight: 700; letter-spacing: 0.3px;
+        padding: 0.5rem 1.4rem;
+    }
+    .stButton>button:hover, .stFormSubmitButton>button:hover {
+        background-color: #ffffff; color: var(--ink); border-color: var(--ink);
+    }
+
+    /* ช่องกรอกข้อมูล: เหลี่ยมคม เส้นดำบาง */
+    .stTextInput input, .stNumberInput input, div[data-baseweb="select"] > div {
+        border-radius: 0 !important; border: 1px solid var(--line) !important;
+        font-family: 'Prompt', sans-serif;
+    }
+    .stTextInput label, .stNumberInput label, .stSelectbox label {
+        font-size: 12px !important; font-weight: 600 !important; letter-spacing: 0.5px;
+        text-transform: uppercase; color: var(--muted) !important;
+    }
+
+    /* กรอบฟอร์ม */
+    div[data-testid="stForm"] {
+        border: 1px solid var(--line); border-radius: 0; padding: 1.6rem 1.6rem 0.8rem;
+        background-color: var(--card);
+    }
+
+    /* แจ้งเตือน สำเร็จ/ผิดพลาด แบบ monochrome มีกรอบแทนพื้นสี */
+    div[data-testid="stAlert"] {
+        border-radius: 0; border: 1px solid var(--line); background-color: var(--card) !important;
+    }
+    div[data-testid="stAlert"] p { color: var(--ink) !important; font-weight: 600; }
+
+    /* เส้นคั่น */
+    hr { border-color: var(--line-soft) !important; }
+    </style>
+    """,
     unsafe_allow_html=True,
 )
 
