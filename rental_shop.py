@@ -566,56 +566,109 @@ if "shop" not in st.session_state:
     st.session_state.shop = shop
 shop: RentalShop = st.session_state.shop
 
-# ---------- ธีมสี ขาว-ดำ-เหลี่ยม (ไม่มีอิโมจิ, มุมคมทุกจุด, ตัวหนังสือหนาเว้นระยะ) ----------
+# ---------- Modern colorful UI theme ----------
 CUSTOM_CSS = (
     "<style>"
-    ":root{--ink:#201126;--ink-soft:#3a2440;--paper:#faf8fb;--card:#ffffff;--accent:#b3435f;--accent-hover:#94324a;--gold:#caa14b;--muted:#7a7182;--line:#e6dfec;}"
-    "html,body,[class*='css']{font-family:'Prompt',sans-serif;color:#241a2b;}"
-    ".stApp{background-color:var(--paper);}"
-    "div[data-testid='stHeader']{background-color:transparent;}"
-    "div[data-testid='stMainBlockContainer']{padding-top:2rem;}"
-    "h1{font-family:'Playfair Display',serif;font-weight:700 !important;color:var(--ink);}"
-    "h2,h3{font-family:'Playfair Display',serif;font-weight:600 !important;color:var(--ink);}"
-    "[data-testid='stCaptionContainer']{letter-spacing:1px;font-size:13px !important;color:var(--muted) !important;font-style:italic;}"
-    "button[data-baseweb='tab']{font-family:'Prompt',sans-serif;font-weight:600;font-size:15px;color:var(--muted);padding:0 6px 12px 6px !important;}"
-    "button[data-baseweb='tab'][aria-selected='true']{color:var(--accent) !important;font-weight:700;}"
-    "div[data-baseweb='tab-highlight']{background-color:var(--accent) !important;height:3px !important;border-radius:3px;}"
-    "div[data-baseweb='tab-border']{background-color:var(--line) !important;}"
-    ".stButton>button,.stFormSubmitButton>button{background-color:var(--accent);color:#ffffff;border-radius:10px;border:1px solid var(--accent);font-weight:600;letter-spacing:0.2px;padding:0.55rem 1.5rem;box-shadow:0 2px 8px rgba(179,67,95,0.25);}"
-    ".stButton>button:hover,.stFormSubmitButton>button:hover{background-color:var(--accent-hover);border-color:var(--accent-hover);box-shadow:0 4px 12px rgba(179,67,95,0.35);}"
-    ".stTextInput input,.stNumberInput input,div[data-baseweb='select']>div{border-radius:8px !important;border:1px solid var(--line) !important;font-family:'Prompt',sans-serif;}"
-    ".stTextInput input:focus,.stNumberInput input:focus{border-color:var(--accent) !important;box-shadow:0 0 0 1px var(--accent) !important;}"
-    ".stTextInput label,.stNumberInput label,.stSelectbox label{font-size:12px !important;font-weight:600 !important;letter-spacing:0.3px;color:var(--muted) !important;}"
-    "div[data-testid='stForm']{border:none;border-radius:0;padding:0;background-color:transparent;box-shadow:none;}"
-    "div[data-testid='stVerticalBlockBorderWrapper']>div>div[data-testid='stVerticalBlock']{border:1px solid var(--line);border-radius:16px;padding:1.8rem 1.8rem 1.4rem;background-color:var(--card);box-shadow:0 4px 18px rgba(32,17,38,0.06);}"
-    "div[data-testid='stAlert']{border-radius:10px;border:1px solid var(--line);background-color:var(--card) !important;}"
-    "div[data-testid='stAlert'] p{color:var(--ink) !important;font-weight:500;}"
-    "hr{border-color:var(--line) !important;}"
-    ".hero{background:linear-gradient(135deg,var(--ink) 0%,var(--ink-soft) 100%);color:#ffffff;padding:2.6rem 2.8rem;margin-bottom:2.2rem;border-radius:20px;box-shadow:0 12px 32px rgba(32,17,38,0.25);}"
-    ".hero-mark{display:flex;align-items:center;gap:10px;margin-bottom:1.4rem;}"
-    ".hero-mark-text{font-family:'Prompt',sans-serif;font-weight:600;letter-spacing:2px;font-size:12px;text-transform:uppercase;color:var(--gold);}"
-    ".hero-eyebrow{letter-spacing:2px;font-size:12px;color:#c9b8d1;margin-bottom:10px;font-style:italic;}"
-    ".hero-title{font-family:'Playfair Display',serif;font-weight:700;font-size:2.4rem;line-height:1.25;margin:0 0 .8rem;}"
-    ".hero-sub{color:#d8cee0;font-size:15px;max-width:600px;margin:0 0 1.8rem;line-height:1.7;font-weight:300;}"
-    ".spec-bar{display:flex;border-top:1px solid rgba(255,255,255,0.15);flex-wrap:wrap;padding-top:1.4rem;}"
-    ".spec-item{flex:1;min-width:140px;padding:0 1.4rem;border-right:1px solid rgba(255,255,255,0.15);}"
-    ".spec-item:first-child{padding-left:0;}"
-    ".spec-item:last-child{border-right:none;}"
-    ".spec-label{letter-spacing:0.5px;font-size:11px;color:#b8abc0;margin-bottom:6px;}"
-    ".spec-value{font-family:'Playfair Display',serif;font-weight:700;font-size:1.7rem;color:var(--gold);}"
-    ".spec-sub{font-size:11px;color:#9a8ea3;margin-top:2px;}"
-    "</style>"
+    ":root{--ink:#182033;--muted:#667085;--line:#e4e7ec;--card:#ffffff;--indigo:#5b5ce2;--indigo-dark:#4444c7;--violet:#8b5cf6;--pink:#ec4899;--cyan:#06b6d4;--teal:#14b8a6;--green:#22a06b;--amber:#f59e0b;--red:#dc4c64;--shadow:0 12px 34px rgba(38,45,77,.09);}"
+    "html,body,[class*='css']{font-family:'Noto Sans Thai','Prompt',sans-serif;color:var(--ink);}"
+    ".stApp{background:radial-gradient(circle at 8% 2%,rgba(139,92,246,.16),transparent 30%),radial-gradient(circle at 92% 10%,rgba(6,182,212,.14),transparent 28%),linear-gradient(180deg,#f2f0ff 0,#f8fbff 32%,#f6f7fb 100%);background-attachment:fixed;}"
+    "div[data-testid='stHeader']{background:rgba(248,249,253,.78);backdrop-filter:blur(18px);border-bottom:1px solid rgba(228,231,236,.75);}"
+    "#MainMenu,footer{visibility:hidden;}"
+    "div[data-testid='stMainBlockContainer']{padding-top:1.4rem;padding-bottom:4.5rem;max-width:1360px;}"
+    "h1,h2,h3{font-family:'Noto Sans Thai','Prompt',sans-serif;color:var(--ink);letter-spacing:-.025em;}"
+    "h3{font-weight:800 !important;font-size:1.18rem !important;margin:.15rem 0 .8rem !important;}"
+    "[data-testid='stCaptionContainer']{color:var(--muted) !important;}"
+
+    ".hero{position:relative;overflow:hidden;background:linear-gradient(125deg,#1d2550 0%,#4f46e5 48%,#7c3aed 100%);color:#fff;padding:2.15rem 2.2rem 1.85rem;margin-bottom:1.25rem;border-radius:26px;box-shadow:0 18px 50px rgba(79,70,229,.24);}"
+    ".hero:before{content:'';position:absolute;width:280px;height:280px;border-radius:50%;right:-90px;top:-130px;background:rgba(255,255,255,.14);filter:blur(2px);}"
+    ".hero:after{content:'';position:absolute;width:190px;height:190px;border-radius:50%;right:180px;bottom:-130px;background:rgba(34,211,238,.18);}"
+    ".hero>*{position:relative;z-index:1;}"
+    ".hero-mark{display:flex;align-items:center;gap:10px;margin-bottom:.55rem;}"
+    ".hero-mark-text{font-size:11px;font-weight:800;letter-spacing:2px;color:#ddd6fe;}"
+    ".hero-title{font-family:'Noto Sans Thai','Prompt',sans-serif;font-size:2rem;font-weight:850;line-height:1.35;margin:0 0 1.3rem;color:#fff;letter-spacing:-.035em;}"
+    ".spec-bar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;}"
+    ".spec-item{position:relative;overflow:hidden;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.17);border-radius:15px;padding:1rem 1rem .9rem;backdrop-filter:blur(8px);}"
+    ".spec-item:before{content:'';position:absolute;left:0;top:0;width:100%;height:3px;background:#a5b4fc;}"
+    ".spec-item:nth-child(2):before{background:#5eead4}.spec-item:nth-child(3):before{background:#fbbf24}.spec-item:nth-child(4):before{background:#67e8f9}.spec-item:nth-child(5):before{background:#f9a8d4}"
+    ".spec-label{font-size:11px;font-weight:700;color:#dbe3ff;margin-bottom:6px;}"
+    ".spec-value{font-size:1.65rem;font-weight:850;line-height:1;color:#fff;}"
+    ".spec-sub{font-size:10.5px;color:#c9d2ff;margin-top:7px;}"
+
+    "div[data-testid='stTabs'] div[data-baseweb='tab-list'],div[data-baseweb='tab-list']{gap:7px;background:rgba(255,255,255,.82);border:1px solid rgba(200,205,222,.95);padding:6px;border-radius:15px;box-shadow:0 8px 24px rgba(48,56,92,.08);margin-bottom:.5rem;}"
+    "div[data-testid='stTabs'] button[role='tab'],button[data-baseweb='tab']{font-family:'Noto Sans Thai','Prompt',sans-serif;font-size:14px;font-weight:750;color:#374151 !important;padding:11px 22px !important;border-radius:10px;margin:0 !important;transition:.18s ease;}"
+    "div[data-testid='stTabs'] button[role='tab'] p,div[data-testid='stTabs'] button[role='tab'] span,button[data-baseweb='tab'] p,button[data-baseweb='tab'] span{color:#374151 !important;font-weight:750 !important;}"
+    "div[data-testid='stTabs'] button[role='tab']:hover,button[data-baseweb='tab']:hover{background:#ede9fe !important;color:#4f46e5 !important;}"
+    "div[data-testid='stTabs'] button[role='tab']:hover p,div[data-testid='stTabs'] button[role='tab']:hover span,button[data-baseweb='tab']:hover p,button[data-baseweb='tab']:hover span{color:#4f46e5 !important;}"
+    "div[data-testid='stTabs'] button[role='tab'][aria-selected='true'],button[data-baseweb='tab'][aria-selected='true']{background:linear-gradient(135deg,#5b5ce2,#7c3aed) !important;color:#ffffff !important;box-shadow:0 6px 16px rgba(91,92,226,.22);}"
+    "div[data-testid='stTabs'] button[role='tab'][aria-selected='true'] p,div[data-testid='stTabs'] button[role='tab'][aria-selected='true'] span,button[data-baseweb='tab'][aria-selected='true'] p,button[data-baseweb='tab'][aria-selected='true'] span{color:#ffffff !important;}"
+    "div[data-testid='stTabs'] div[data-baseweb='tab-highlight'],div[data-testid='stTabs'] div[data-baseweb='tab-border'],div[data-baseweb='tab-highlight'],div[data-baseweb='tab-border']{display:none !important;}"
+
+    ".section-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:1.45rem 0 .75rem;padding:0 .2rem;}"
+    ".section-title-wrap{display:flex;align-items:center;gap:12px;}"
+    ".section-accent{width:9px;height:34px;border-radius:10px;background:linear-gradient(180deg,#5b5ce2,#8b5cf6);box-shadow:0 5px 12px rgba(91,92,226,.2);}"
+    ".section-head.teal .section-accent{background:linear-gradient(180deg,#06b6d4,#14b8a6)}"
+    ".section-head.pink .section-accent{background:linear-gradient(180deg,#ec4899,#8b5cf6)}"
+    ".section-title{font-weight:850;font-size:1.12rem;color:var(--ink);line-height:1.25;}"
+    ".section-sub{font-size:12px;color:#7b8496;margin-top:3px;}"
+    ".section-tag{font-size:11px;font-weight:800;padding:6px 10px;border-radius:999px;background:#eeedff;color:#5956c9;border:1px solid #dcdbff;white-space:nowrap;}"
+    ".section-head.teal .section-tag{background:#e9fbf8;color:#0f8f7a;border-color:#c9f2e9}.section-head.pink .section-tag{background:#fff0f7;color:#c43b7a;border-color:#ffd6e9}"
+
+    "div[data-testid='stVerticalBlockBorderWrapper']>div>div[data-testid='stVerticalBlock']{border:1px solid rgba(222,226,237,.96);border-radius:18px;padding:1.35rem 1.4rem 1.2rem;background:rgba(255,255,255,.94);box-shadow:var(--shadow);}"
+    "div[data-testid='stForm']{border:1px solid #e1e5ee;border-radius:16px;padding:1.2rem 1.25rem;background:linear-gradient(180deg,#fff 0%,#fcfcff 100%);box-shadow:0 8px 22px rgba(48,56,92,.055);}"
+    "div[data-testid='stExpander']{border:1px solid #e1e5ee !important;border-radius:15px !important;overflow:hidden;background:#fff;box-shadow:0 7px 20px rgba(48,56,92,.05);}"
+    "div[data-testid='stExpander'] details summary{font-weight:800;color:var(--ink);padding:.2rem .3rem;}"
+
+    ".stTextInput input,.stNumberInput input,div[data-baseweb='select']>div{background:#fff !important;border:1px solid #d7dce7 !important;border-radius:11px !important;min-height:45px;font-family:'Noto Sans Thai','Prompt',sans-serif;box-shadow:0 1px 2px rgba(16,24,40,.02);transition:.15s ease;}"
+    ".stTextInput input:hover,.stNumberInput input:hover,div[data-baseweb='select']>div:hover{border-color:#a9adff !important;}"
+    ".stTextInput input:focus,.stNumberInput input:focus{border-color:var(--indigo) !important;box-shadow:0 0 0 3px rgba(91,92,226,.12) !important;}"
+    ".stTextInput label,.stNumberInput label,.stSelectbox label{font-size:12.5px !important;font-weight:750 !important;color:#50596c !important;}"
+
+    ".stButton>button,.stFormSubmitButton>button{background:linear-gradient(135deg,#5b5ce2,#7056e8);color:#fff;border:0;border-radius:11px;font-family:'Noto Sans Thai','Prompt',sans-serif;font-weight:800;padding:.58rem 1.3rem;min-height:43px;box-shadow:0 6px 16px rgba(91,92,226,.2);transition:.16s ease;}"
+    ".stButton>button:hover,.stFormSubmitButton>button:hover{background:linear-gradient(135deg,#4d4ed0,#6545df);color:#fff;transform:translateY(-1px);box-shadow:0 9px 20px rgba(91,92,226,.26);}"
+    ".stButton>button:focus,.stFormSubmitButton>button:focus{box-shadow:0 0 0 4px rgba(91,92,226,.14) !important;}"
+    "div[data-testid='stAlert']{border-radius:12px;border:1px solid rgba(220,224,234,.9);box-shadow:0 5px 14px rgba(48,56,92,.045);}"
+    "div[data-testid='stDataFrame']{background:#fff;border:1px solid #e1e5ee;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(48,56,92,.065);margin:.35rem 0 1rem;}"
+    "hr{border-color:#e2e6ef !important;margin:1.7rem 0 !important;}"
+    ".soft-note{background:linear-gradient(135deg,#eeedff,#f5f3ff);border:1px solid #dfddff;border-radius:14px;padding:.8rem 1rem;color:#5a5c7c;font-size:12px;margin:.35rem 0 .8rem;}"
+
+    "/* Robust tab contrast fix for newer Streamlit DOM */"
+    "[role='tablist']{gap:8px !important;background:rgba(255,255,255,.94) !important;border:1px solid #d9deea !important;padding:7px !important;border-radius:16px !important;box-shadow:0 8px 24px rgba(48,56,92,.08) !important;}"
+    "[role='tab']{background:#f4f5ff !important;border:1px solid #dde1f3 !important;border-radius:11px !important;color:#1f2937 !important;opacity:1 !important;padding:11px 22px !important;font-weight:800 !important;transition:.18s ease !important;}"
+    "[role='tab'] *{color:#1f2937 !important;opacity:1 !important;-webkit-text-fill-color:#1f2937 !important;text-shadow:none !important;font-weight:800 !important;}"
+    "[role='tab']:hover{background:#e9e7ff !important;border-color:#b9b7ff !important;color:#4338ca !important;}"
+    "[role='tab']:hover *{color:#4338ca !important;-webkit-text-fill-color:#4338ca !important;}"
+    "[role='tab'][aria-selected='true']{background:linear-gradient(135deg,#5355dc,#7c3aed) !important;border-color:#5355dc !important;color:#ffffff !important;box-shadow:0 7px 18px rgba(83,85,220,.24) !important;}"
+    "[role='tab'][aria-selected='true'] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;}"
+    "[role='tablist'] [data-baseweb='tab-highlight'],[role='tablist'] [data-baseweb='tab-border']{display:none !important;}"
+    ".balanced-panel{display:none;}"
+    "div[data-testid='stColumn']:has(.balanced-panel) div[data-testid='stVerticalBlockBorderWrapper']>div>div[data-testid='stVerticalBlock']{min-height:245px;height:100%;display:flex;flex-direction:column;}"
+    "div[data-testid='stColumn']:has(.balanced-panel) .stButton>button{width:100%;}"
+    "div[data-testid='stColumn']:has(.balanced-panel) h3{margin-top:0 !important;margin-bottom:.9rem !important;}"
+    ".panel-help{font-size:12px;color:#7b8496;line-height:1.6;margin:-.25rem 0 .8rem;}"
+    ".return-panel-title{display:flex;align-items:center;gap:10px;font-size:1.05rem;font-weight:850;color:#182033 !important;margin:0 0 .3rem;line-height:1.35;}"
+    ".return-panel-title:before{content:\'\';display:block;width:7px;height:26px;border-radius:999px;background:linear-gradient(180deg,#ec4899,#8b5cf6);box-shadow:0 4px 10px rgba(139,92,246,.18);}"
+    ".return-panel-desc{font-size:12px;color:#667085 !important;line-height:1.6;margin:0 0 1rem;}"
+    ".return-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:.7rem;}"
+    ".return-stat{background:linear-gradient(180deg,#fafaff 0%,#f2f1ff 100%);border:1px solid #dedcff;border-radius:14px;padding:1rem .85rem;text-align:center;box-shadow:0 6px 16px rgba(79,70,229,.06);}"
+    ".return-stat:nth-child(2){background:linear-gradient(180deg,#fffaf0 0%,#fff3d7 100%);border-color:#f7dfaa;}"
+    ".return-stat:nth-child(3){background:linear-gradient(180deg,#effcf7 0%,#e3f8ef 100%);border-color:#c8eadc;}"
+    ".return-stat-label{font-size:11.5px;font-weight:750;color:#667085 !important;margin-bottom:7px;white-space:nowrap;}"
+    ".return-stat-value{font-size:1.7rem;font-weight:900;color:#4f46e5 !important;line-height:1;}"
+    ".return-stat:nth-child(2) .return-stat-value{color:#d97706 !important;}"
+    ".return-stat:nth-child(3) .return-stat-value{color:#16845f !important;}"
+    ".return-tip{margin-top:1rem;background:#f8f9ff;border:1px solid #e4e5f5;border-radius:12px;padding:.8rem .9rem;font-size:11.5px;color:#697386 !important;line-height:1.55;}"
+    ".return-panel-marker{display:none;}"
+    "div[data-testid=\'stColumn\']:has(.return-panel-marker) div[data-testid=\'stVerticalBlockBorderWrapper\']>div>div[data-testid=\'stVerticalBlock\']{min-height:275px !important;background:#ffffff !important;border:1px solid #e2e4ef !important;box-shadow:0 10px 28px rgba(48,56,92,.075) !important;}"
+    "@media(max-width:900px){div[data-testid='stMainBlockContainer']{padding-left:1rem;padding-right:1rem}.hero{padding:1.55rem 1.25rem;border-radius:20px}.hero-title{font-size:1.58rem}.spec-bar{grid-template-columns:repeat(2,minmax(0,1fr))}.spec-item:last-child{grid-column:1/-1}div[data-baseweb='tab-list']{overflow-x:auto}button[data-baseweb='tab']{white-space:nowrap;padding:10px 14px !important}.section-head{align-items:flex-start}.section-tag{display:none}}"
+    ".stTextInput input,.stNumberInput input{color:#111111 !important;}"".stTextInput input::placeholder,.stNumberInput input::placeholder{color:#9ca3af !important;opacity:1 !important;}"".section-title{color:#182033 !important;-webkit-text-fill-color:#182033 !important;opacity:1 !important;}"".section-sub{color:#667085 !important;-webkit-text-fill-color:#667085 !important;opacity:1 !important;}"".stApp h1,.stApp h2,.stApp h3,.stApp h4,.stApp h5,.stApp h6{color:#182033 !important;-webkit-text-fill-color:#182033 !important;opacity:1 !important;}"".panel-help{color:#667085 !important;-webkit-text-fill-color:#667085 !important;opacity:1 !important;}"".stTextInput label,.stNumberInput label,.stSelectbox label{color:#374151 !important;-webkit-text-fill-color:#374151 !important;opacity:1 !important;}""div[data-testid='stAlert'] p{color:#263244 !important;-webkit-text-fill-color:#263244 !important;opacity:1 !important;}""</style>"
 )
-# หมายเหตุสำคัญ: ต้องเขียน CSS ให้อยู่ใน "บรรทัดเดียว" ไม่มีบรรทัดว่างคั่นเลย
-# เพราะ st.markdown ตีความบรรทัดว่างในสตริงเป็นการขึ้นย่อหน้าใหม่แบบ Markdown
-# ถ้ามีบรรทัดว่างอยู่กลาง <style> มันจะตัด CSS ที่เหลือให้โผล่มาเป็นข้อความธรรมดาบนหน้าเว็บ (บั๊กที่เจอ)
 GOOGLE_FONT_LINK = (
     "<link rel='preconnect' href='https://fonts.googleapis.com'>"
-    "<link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap' rel='stylesheet'>"
+    "<link href='https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Prompt:wght@400;500;600;700&display=swap' rel='stylesheet'>"
 )
 st.markdown(GOOGLE_FONT_LINK + CUSTOM_CSS, unsafe_allow_html=True)
 
-# ---------- Hero section: หัวข้อใหญ่ + แถบสถิติระบบแบบ live ----------
+# ---------- Hero section: live dashboard ----------
 _total_costumes = len(shop.all_costumes())
 _available = len(shop.available_costumes())
 _rented = _total_costumes - _available
@@ -623,7 +676,7 @@ _total_customers = len(shop.all_customers())
 _active_rentals = len([r for r in shop.all_rentals() if not r.returned])
 
 HANGER_ICON = (
-    "<svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='white' "
+    "<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='white' "
     "stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>"
     "<path d='M12 3a2 2 0 1 1 2 2c0 1-2 2-2 3'/><path d='M12 8l9 6H3l9-6z'/><path d='M3 20h18'/>"
     "</svg>"
@@ -632,20 +685,30 @@ HANGER_ICON = (
 HERO_HTML = (
     "<div class='hero'>"
     "<div class='hero-mark'>" + HANGER_ICON + "<span class='hero-mark-text'>COSTUME RENTAL SHOP</span></div>"
-    
-    "<div class='hero-title'>จัดการร้านเช่าชุด<br>อย่างเป็นระบบ</div>"
+    "<div class='hero-title'>จัดการร้านเช่าชุดอย่างเป็นระบบ</div>"
     "<div class='spec-bar'>"
     f"<div class='spec-item'><div class='spec-label'>ชุดทั้งหมด</div><div class='spec-value'>{_total_costumes}</div><div class='spec-sub'>รายการในคลัง</div></div>"
     f"<div class='spec-item'><div class='spec-label'>ชุดว่าง</div><div class='spec-value'>{_available}</div><div class='spec-sub'>พร้อมให้เช่า</div></div>"
     f"<div class='spec-item'><div class='spec-label'>กำลังเช่าอยู่</div><div class='spec-value'>{_rented}</div><div class='spec-sub'>ชุดที่ถูกยืมออก</div></div>"
     f"<div class='spec-item'><div class='spec-label'>ลูกค้า</div><div class='spec-value'>{_total_customers}</div><div class='spec-sub'>คนในระบบ</div></div>"
     f"<div class='spec-item'><div class='spec-label'>รายการเช่าที่ยังไม่คืน</div><div class='spec-value'>{_active_rentals}</div><div class='spec-sub'>ต้องติดตาม</div></div>"
-    "</div>"
-    "</div>"
+    "</div></div>"
 )
 st.markdown(HERO_HTML, unsafe_allow_html=True)
 
 tab_costume, tab_customer, tab_rental = st.tabs(["คลังชุด", "ลูกค้า", "เช่า / คืนชุด"])
+
+
+def section_heading(title, subtitle, tag, tone="indigo"):
+    tone_class = "" if tone == "indigo" else tone
+    st.markdown(
+        f"<div class='section-head {tone_class}'>"
+        "<div class='section-title-wrap'><div class='section-accent'></div><div>"
+        f"<div class='section-title'>{title}</div><div class='section-sub'>{subtitle}</div>"
+        "</div></div>"
+        f"<div class='section-tag'>{tag}</div></div>",
+        unsafe_allow_html=True,
+    )
 
 
 def costumes_dataframe(costumes):
@@ -662,13 +725,10 @@ def costumes_dataframe(costumes):
 # ---------------- แท็บ: คลังชุด ----------------
 NEW_TYPE_OPTION = "+ เพิ่มประเภทใหม่..."
 ss = st.session_state
-ss.setdefault("adding_new_type", False)  # True = ดรอปดาวน์อยู่ในโหมดพิมพ์ได้
+ss.setdefault("adding_new_type", False)
 if "custom_categories" not in ss:
-    # โหลดประเภทที่เคยพิมพ์เพิ่มเองไว้จาก SQLite (ผ่าน shop) ตอนเปิดแอปครั้งแรกของ session
     ss.custom_categories = shop.custom_categories()
 
-# เพิ่งเพิ่มชุดด้วยประเภทใหม่ -> กลับไปโหมดปกติ และเลือกประเภทนั้นไว้ให้
-# (ต้องตั้งค่านี้ "ก่อน" สร้าง widget เพราะ Streamlit ห้ามแก้ค่า widget หลังสร้างไปแล้ว)
 if "pending_type" in ss:
     ss.costume_type_select = ss.pop("pending_type")
     ss.adding_new_type = False
@@ -676,7 +736,6 @@ if "pending_type" in ss:
 
 
 def _on_type_change():
-    # ผู้ใช้เลือก "+ เพิ่มประเภทใหม่..." -> สลับดรอปดาวน์เป็นโหมดพิมพ์ได้
     if ss.costume_type_select == NEW_TYPE_OPTION:
         ss.adding_new_type = True
         ss.costume_type_select = list(COSTUME_CLASSES)[0]
@@ -688,13 +747,11 @@ def _cancel_new_type():
 
 
 with tab_costume:
-    st.subheader("เพิ่มชุดใหม่")
-
+    section_heading("เพิ่มชุดใหม่", "เพิ่มรายการชุดเข้าสู่คลังและกำหนดราคาเช่า", "ADD COSTUME")
     with st.container(border=True):
         type_options = list(COSTUME_CLASSES) + ss.custom_categories
 
         if ss.adding_new_type:
-            # โหมดพิมพ์ได้: accept_new_options=True ให้พิมพ์ค่าใหม่ลงในดรอปดาวน์ได้เลย
             tcol, bcol = st.columns([5, 1], vertical_alignment="bottom")
             costume_type = tcol.selectbox(
                 "ประเภท (พิมพ์ชื่อประเภทใหม่แล้วกด Enter)",
@@ -713,7 +770,6 @@ with tab_costume:
                 on_change=_on_type_change,
             )
 
-        # ข้อความสำเร็จที่ฝากไว้ก่อน st.rerun()
         if "costume_msg" in ss:
             st.success(ss.pop("costume_msg"))
 
@@ -732,180 +788,86 @@ with tab_costume:
                     if not final_type or final_type == NEW_TYPE_OPTION:
                         raise ValueError("พิมพ์ชื่อประเภทใหม่ในช่องประเภท แล้วกด Enter ก่อน")
 
-                    shop.add_costume(final_type, name, size, price, deposit)  # บันทึกลง SQLite ในตัวแล้ว
-
-                    # ประเภทใหม่ -> เพิ่มเข้าไปในดรอปดาวน์
+                    shop.add_costume(final_type, name, size, price, deposit)
                     if final_type not in COSTUME_CLASSES and final_type not in ss.custom_categories:
                         ss.custom_categories.append(final_type)
-
                     ss.pending_type = final_type
                     ss.costume_msg = f"เพิ่มชุดสำเร็จ (ประเภท: {final_type})"
                     st.rerun()
                 except ValueError as e:
                     st.error(str(e))
 
-    keyword = st.text_input("ค้นหาชื่อ / ประเภท / รหัสชุด", key="search_costume")
+    section_heading("คลังชุด", "ค้นหาและตรวจสอบสถานะชุดทั้งหมดในระบบ", "INVENTORY", "teal")
+    keyword = st.text_input("ค้นหาชื่อ / ประเภท / รหัสชุด", key="search_costume", placeholder="พิมพ์คำค้นหา...")
     costumes = shop.search_costumes(keyword) if keyword else shop.all_costumes()
     st.dataframe(costumes_dataframe(costumes), width='stretch', hide_index=True)
 
-    if costumes:
-        codes = [c.code for c in shop.all_costumes() if c.available]
-        if codes:
-            del_code = st.selectbox("เลือกรหัสชุดที่จะลบ (เฉพาะชุดว่าง)", [""] + codes)
-            if st.button("ลบชุดที่เลือก") and del_code:
-                try:
-                    shop.remove_costume(del_code)  # ลบออกจาก SQLite ในตัวแล้ว
-                    st.success(f"ลบชุด {del_code} แล้ว")
-                    st.rerun()
-                except ValueError as e:
-                    st.error(str(e))
+    section_heading("จัดการข้อมูลชุด", "แก้ไขรายละเอียดหรือลบชุดที่ว่างออกจากระบบ", "MANAGE", "pink")
+    manage_left, manage_right = st.columns(2, gap="large")
+    with manage_left:
+        with st.container(border=True):
+            st.markdown("<span class='balanced-panel'></span>", unsafe_allow_html=True)
+            st.subheader("ลบชุด")
+            st.markdown("<div class='panel-help'>ลบได้เฉพาะชุดที่มีสถานะว่างและไม่ได้ถูกเช่าอยู่</div>", unsafe_allow_html=True)
+            if costumes:
+                codes = [c.code for c in shop.all_costumes() if c.available]
+                if codes:
+                    del_code = st.selectbox("เลือกรหัสชุดที่จะลบ (เฉพาะชุดว่าง)", [""] + codes)
+                    if st.button("ลบชุดที่เลือก", use_container_width=True) and del_code:
+                        try:
+                            shop.remove_costume(del_code)
+                            st.success(f"ลบชุด {del_code} แล้ว")
+                            st.rerun()
+                        except ValueError as e:
+                            st.error(str(e))
+                else:
+                    st.info("ขณะนี้ไม่มีชุดว่างที่สามารถลบได้")
+            else:
+                st.info("ยังไม่มีรายการชุด")
 
-    # ---- แก้ไขชุดที่มีอยู่แล้ว (แก้ได้แม้กำลังถูกเช่าอยู่ เช่น แก้ราคา/ชื่อที่พิมพ์ผิด) ----
-    with st.expander("แก้ไขชุดที่มีอยู่แล้ว"):
-        # เพิ่งบันทึกสำเร็จ -> เคลียร์ตัวเลือกกลับเป็นค่าว่าง (ต้องทำ "ก่อน" สร้าง widget)
-        if "clear_edit_costume" in ss:
-            ss.edit_costume_select = ""
-            del ss["clear_edit_costume"]
-        if "edit_costume_msg" in ss:
-            st.success(ss.pop("edit_costume_msg"))
+    with manage_right:
+        with st.container(border=True):
+            st.markdown("<span class='balanced-panel'></span>", unsafe_allow_html=True)
+            st.subheader("แก้ไขชุด")
+            st.markdown("<div class='panel-help'>เลือกรหัสชุดเพื่อแก้ไขชื่อ ขนาด ราคาเช่า และเงินมัดจำ</div>", unsafe_allow_html=True)
+            if "clear_edit_costume" in ss:
+                ss.edit_costume_select = ""
+                del ss["clear_edit_costume"]
+            if "edit_costume_msg" in ss:
+                st.success(ss.pop("edit_costume_msg"))
 
-        all_codes = [c.code for c in shop.all_costumes()]
-        edit_code = st.selectbox("เลือกรหัสชุดที่จะแก้ไข", [""] + all_codes, key="edit_costume_select")
-        if edit_code:
-            costume_obj = next(c for c in shop.all_costumes() if c.code == edit_code)
-            with st.form(f"edit_costume_form_{edit_code}"):
-                ec1, ec2, ec3, ec4 = st.columns(4)
-                new_name = ec1.text_input("ชื่อชุด", value=costume_obj.name)
-                new_size = ec2.text_input("ขนาด", value=costume_obj.size)
-                new_price = ec3.number_input("ราคา/วัน", min_value=0.0, step=50.0, value=costume_obj.price_per_day)
-                new_deposit = ec4.number_input("มัดจำ", min_value=0.0, step=100.0, value=costume_obj.deposit)
-                if st.form_submit_button("บันทึกการแก้ไข"):
-                    try:
-                        # ใช้ setter ของคลาส Costume ตรงๆ (มี validation อยู่แล้ว เช่น ราคาห้ามติดลบ)
-                        costume_obj.name = new_name
-                        costume_obj.size = new_size
-                        costume_obj.price_per_day = new_price
-                        costume_obj.deposit = new_deposit
-                        shop.persist_costume(costume_obj)  # บันทึกการแก้ไขลง SQLite
-                        ss.edit_costume_msg = f"แก้ไขชุด {edit_code} สำเร็จ"
-                        ss.clear_edit_costume = True
-                        st.rerun()
-                    except ValueError as e:
-                        st.error(str(e))
+            all_codes = [c.code for c in shop.all_costumes()]
+            edit_code = st.selectbox("เลือกรหัสชุดที่จะแก้ไข", [""] + all_codes, key="edit_costume_select")
+            if edit_code:
+                costume_obj = next(c for c in shop.all_costumes() if c.code == edit_code)
+                with st.form(f"edit_costume_form_{edit_code}"):
+                    ec1, ec2 = st.columns(2)
+                    ec3, ec4 = st.columns(2)
+                    new_name = ec1.text_input("ชื่อชุด", value=costume_obj.name)
+                    new_size = ec2.text_input("ขนาด", value=costume_obj.size)
+                    new_price = ec3.number_input("ราคา/วัน", min_value=0.0, step=50.0, value=costume_obj.price_per_day)
+                    new_deposit = ec4.number_input("มัดจำ", min_value=0.0, step=100.0, value=costume_obj.deposit)
+                    if st.form_submit_button("บันทึกการแก้ไข", use_container_width=True):
+                        try:
+                            costume_obj.name = new_name
+                            costume_obj.size = new_size
+                            costume_obj.price_per_day = new_price
+                            costume_obj.deposit = new_deposit
+                            shop.persist_costume(costume_obj)
+                            ss.edit_costume_msg = f"แก้ไขชุด {edit_code} สำเร็จ"
+                            ss.clear_edit_costume = True
+                            st.rerun()
+                        except ValueError as e:
+                            st.error(str(e))
+            else:
+                st.info("เลือกรหัสชุดด้านบนเพื่อเปิดแบบฟอร์มแก้ไข")
 
 
 # ---------------- แท็บ: ลูกค้า ----------------
 with tab_customer:
-    with st.form("add_customer_form", clear_on_submit=True):
-        st.subheader("เพิ่มลูกค้า")
-        c1, c2 = st.columns(2)
-        cust_name = c1.text_input("ชื่อ")
-        cust_phone = c2.text_input("เบอร์โทร", placeholder="0891234567", max_chars=10)
-        submitted = st.form_submit_button("เพิ่มลูกค้า")
-        if submitted:
-            if not cust_name or not cust_phone:
-                st.error("กรอกชื่อและเบอร์โทรให้ครบ")
-            elif not cust_phone.isdigit() or len(cust_phone) != 10:
-                st.error("เบอร์โทรต้องเป็นตัวเลข 10 หลักเท่านั้น เช่น 0891234567")
-            else:
-                shop.add_customer(cust_name, cust_phone)  # บันทึกลง SQLite ในตัวแล้ว
-                st.success("เพิ่มลูกค้าสำเร็จ")
-
-    cust_keyword = st.text_input("ค้นหาชื่อ / เบอร์โทร / รหัสลูกค้า", key="search_customer")
-    filtered_customers = shop.search_customers(cust_keyword) if cust_keyword else shop.all_customers()
-
-    customers_df = pd.DataFrame([
-        {"รหัสลูกค้า": c.customer_id, "ชื่อ": c.name, "เบอร์โทร": c.phone}
-        for c in filtered_customers
-    ])
-    st.dataframe(customers_df, width='stretch', hide_index=True)
-
-    if filtered_customers:
-        cust_codes = [c.customer_id for c in filtered_customers]
-        del_cust_id = st.selectbox("เลือกรหัสลูกค้าที่จะลบ", [""] + cust_codes)
-        if st.button("ลบลูกค้าที่เลือก") and del_cust_id:
-            try:
-                shop.remove_customer(del_cust_id)  # ลบออกจาก SQLite ในตัวแล้ว
-                st.success(f"ลบลูกค้า {del_cust_id} แล้ว")
-                st.rerun()
-            except ValueError as e:
-                st.error(str(e))
-
-    # ---- แก้ไขข้อมูลลูกค้าที่มีอยู่แล้ว ----
-    with st.expander("แก้ไขข้อมูลลูกค้า"):
-        # เพิ่งบันทึกสำเร็จ -> เคลียร์ตัวเลือกกลับเป็นค่าว่าง (ต้องทำ "ก่อน" สร้าง widget)
-        if "clear_edit_customer" in ss:
-            ss.edit_customer_select = ""
-            del ss["clear_edit_customer"]
-        if "edit_customer_msg" in ss:
-            st.success(ss.pop("edit_customer_msg"))
-
-        all_cust_ids = [c.customer_id for c in shop.all_customers()]
-        edit_cust_id = st.selectbox("เลือกรหัสลูกค้าที่จะแก้ไข", [""] + all_cust_ids, key="edit_customer_select")
-        if edit_cust_id:
-            customer_obj = next(c for c in shop.all_customers() if c.customer_id == edit_cust_id)
-            with st.form(f"edit_customer_form_{edit_cust_id}"):
-                ecu1, ecu2 = st.columns(2)
-                new_cust_name = ecu1.text_input("ชื่อ", value=customer_obj.name)
-                new_cust_phone = ecu2.text_input("เบอร์โทร", value=customer_obj.phone, max_chars=10)
-                if st.form_submit_button("บันทึกการแก้ไข"):
-                    try:
-                        # ใช้ setter ของคลาส Customer ตรงๆ (มี validation อยู่แล้ว เช่น เบอร์โทรต้องเป็นเลข 10 หลัก)
-                        customer_obj.name = new_cust_name
-                        customer_obj.phone = new_cust_phone
-                        shop.persist_customer(customer_obj)  # บันทึกการแก้ไขลง SQLite
-                        ss.edit_customer_msg = f"แก้ไขลูกค้า {edit_cust_id} สำเร็จ"
-                        ss.clear_edit_customer = True
-                        st.rerun()
-                    except ValueError as e:
-                        st.error(str(e))
-
-
-# ---------------- แท็บ: เช่า / คืนชุด ----------------
-with tab_rental:
-    st.subheader("ทำรายการเช่าชุด")
-    customer_options = {f"{c.customer_id} - {c.name}": c.customer_id for c in shop.all_customers()}
-    costume_options = {f"{c.code} - {c.name} ({c.category()})": c.code for c in shop.available_costumes()}
-
-    with st.form("rent_form"):
-        c1, c2, c3 = st.columns(3)
-        customer_label = c1.selectbox("ลูกค้า", [""] + list(customer_options.keys()))
-        costume_label = c2.selectbox("ชุด (เฉพาะที่ว่าง)", [""] + list(costume_options.keys()))
-        days = c3.number_input("จำนวนวัน", min_value=1, value=1, step=1)
-        submitted = st.form_submit_button("ยืนยันเช่า")
-        if submitted:
-            try:
-                if not customer_label or not costume_label:
-                    raise ValueError("กรุณาเลือกลูกค้าและชุด")
-                rental = shop.rent_costume(  # บันทึกลง SQLite ในตัวแล้ว
-                    customer_options[customer_label], costume_options[costume_label], days
-                )
-                st.success(
-                    f"{rental.rental_id}: {rental.customer.name} เช่า {rental.costume.name} "
-                    f"{rental.days} วัน = {rental.fee:.0f} บาท"
-                )
-            except ValueError as e:
-                st.error(str(e))
-
-    st.divider()
-    rentals = shop.all_rentals()
-    rentals_df = pd.DataFrame([
-        {
-            "รหัสเช่า": r.rental_id, "ลูกค้า": r.customer.name, "ชุด": r.costume.name,
-            "จำนวนวัน": r.days, "ค่าเช่า": r.fee,
-            "สถานะ": "คืนแล้ว" if r.returned else "กำลังเช่า",
-        }
-        for r in rentals
-    ])
-    st.dataframe(rentals_df, width='stretch', hide_index=True)
-
-    active_ids = [r.rental_id for r in rentals if not r.returned]
-    if active_ids:
-        return_id = st.selectbox("เลือกรหัสเช่าที่จะคืน", [""] + active_ids)
-        if st.button("คืนชุด") and return_id:
-            try:
-                shop.return_costume(return_id)  # บันทึกลง SQLite ในตัวแล้ว
-                st.success(f"คืนชุดของรายการ {return_id} แล้ว")
-                st.rerun()
-            except ValueError as e:
-                st.error(str(e))
+    section_heading("เพิ่มลูกค้า", "บันทึกข้อมูลลูกค้าใหม่เข้าสู่ระบบ", "NEW CUSTOMER")
+    with st.container(border=True):
+        with st.form("add_customer_form", clear_on_submit=True, border=False):
+            c1, c2 = st.columns(2)
+            cust_name = c1.text_input("ชื่อ")
+            cust_phone = c2.text_input("เบอร์โทรศัพท์")
