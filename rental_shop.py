@@ -1,4 +1,3 @@
-
 import os
 import sqlite3
 from abc import ABC, abstractmethod
@@ -76,6 +75,11 @@ class Costume(ABC):
     def calculate_rental_fee(self, days):
         raise NotImplementedError
 
+    def rental_note(self, days):
+        """ข้อความเพิ่มเติมเกี่ยวกับส่วนลด/โปรโมชั่น (ถ้ามี) สำหรับแสดงตอนเช่าสำเร็จ
+        ค่าเริ่มต้นคือไม่มีข้อความเพิ่ม ให้คลาสลูกที่มีส่วนลด override เอา (POLYMORPHISM)"""
+        return None
+
     def __str__(self):
         return (
             f"[{self.category()}] {self.name} ({self.size}) "
@@ -103,6 +107,11 @@ class ThaiCostume(Costume):
             total *= 0.90  # ลด 10% ถ้าเช่า >= 3 วัน
         return total
 
+    def rental_note(self, days):
+        if days >= 3:
+            return "ได้รับส่วนลด 10% (เช่าตั้งแต่ 3 วันขึ้นไป)"
+        return None
+
 
 
 class PartyCostume(Costume):
@@ -113,6 +122,11 @@ class PartyCostume(Costume):
         if days <= 0:
             return 0
         return self.price_per_day + (days - 1) * self.price_per_day * 0.5  # วันถัดไปครึ่งราคา
+
+    def rental_note(self, days):
+        if days >= 2:
+            return "คิดวันแรกราคาเต็ม วันถัดไปลดครึ่งราคา"
+        return None
 
 
 class CustomCostume(Costume):
@@ -815,3 +829,161 @@ with tab_customer:
             c1, c2 = st.columns(2)
             cust_name = c1.text_input("ชื่อ")
             cust_phone = c2.text_input("เบอร์โทรศัพท์")
+            submitted = st.form_submit_button("เพิ่มลูกค้า")
+            if submitted:
+                try:
+                    if not cust_name or not cust_phone:
+                        raise ValueError("กรอกชื่อและเบอร์โทรให้ครบ")
+                    if not cust_phone.isdigit() or len(cust_phone) != 10:
+                        raise ValueError("เบอร์โทรต้องเป็นตัวเลข 10 หลักเท่านั้น เช่น 0891234567")
+                    shop.add_customer(cust_name, cust_phone)
+                    st.success("เพิ่มลูกค้าสำเร็จ")
+                except ValueError as e:
+                    st.error(str(e))
+
+    section_heading("รายชื่อลูกค้า", "ค้นหาและตรวจสอบข้อมูลลูกค้าทั้งหมดในระบบ", "CUSTOMERS", "teal")
+    cust_keyword = st.text_input("ค้นหาชื่อ / เบอร์โทร / รหัสลูกค้า", key="search_customer", placeholder="พิมพ์คำค้นหา...")
+    filtered_customers = shop.search_customers(cust_keyword) if cust_keyword else shop.all_customers()
+    customers_df = pd.DataFrame([
+        {"รหัสลูกค้า": c.customer_id, "ชื่อ": c.name, "เบอร์โทร": c.phone}
+        for c in filtered_customers
+    ])
+    st.dataframe(customers_df, width='stretch', hide_index=True)
+
+    section_heading("จัดการข้อมูลลูกค้า", "แก้ไขข้อมูลหรือลบลูกค้าออกจากระบบ", "MANAGE", "pink")
+    cust_manage_left, cust_manage_right = st.columns(2, gap="large")
+    with cust_manage_left:
+        with st.container(border=True):
+            st.markdown("<span class='balanced-panel'></span>", unsafe_allow_html=True)
+            st.subheader("ลบลูกค้า")
+            st.markdown("<div class='panel-help'>ลบได้เฉพาะลูกค้าที่ไม่มีชุดค้างเช่าอยู่</div>", unsafe_allow_html=True)
+            if filtered_customers:
+                cust_codes = [c.customer_id for c in filtered_customers]
+                del_cust_id = st.selectbox("เลือกรหัสลูกค้าที่จะลบ", [""] + cust_codes)
+                if st.button("ลบลูกค้าที่เลือก", use_container_width=True) and del_cust_id:
+                    try:
+                        shop.remove_customer(del_cust_id)
+                        st.success(f"ลบลูกค้า {del_cust_id} แล้ว")
+                        st.rerun()
+                    except ValueError as e:
+                        st.error(str(e))
+            else:
+                st.info("ยังไม่มีรายชื่อลูกค้า")
+
+    with cust_manage_right:
+        with st.container(border=True):
+            st.markdown("<span class='balanced-panel'></span>", unsafe_allow_html=True)
+            st.subheader("แก้ไขข้อมูลลูกค้า")
+            st.markdown("<div class='panel-help'>เลือกรหัสลูกค้าเพื่อแก้ไขชื่อและเบอร์โทร</div>", unsafe_allow_html=True)
+            if "clear_edit_customer" in ss:
+                ss.edit_customer_select = ""
+                del ss["clear_edit_customer"]
+            if "edit_customer_msg" in ss:
+                st.success(ss.pop("edit_customer_msg"))
+
+            all_cust_ids = [c.customer_id for c in shop.all_customers()]
+            edit_cust_id = st.selectbox("เลือกรหัสลูกค้าที่จะแก้ไข", [""] + all_cust_ids, key="edit_customer_select")
+            if edit_cust_id:
+                customer_obj = next(c for c in shop.all_customers() if c.customer_id == edit_cust_id)
+                with st.form(f"edit_customer_form_{edit_cust_id}"):
+                    ecu1, ecu2 = st.columns(2)
+                    new_cust_name = ecu1.text_input("ชื่อ", value=customer_obj.name)
+                    new_cust_phone = ecu2.text_input("เบอร์โทร", value=customer_obj.phone, max_chars=10)
+                    if st.form_submit_button("บันทึกการแก้ไข", use_container_width=True):
+                        try:
+                            customer_obj.name = new_cust_name
+                            customer_obj.phone = new_cust_phone
+                            shop.persist_customer(customer_obj)
+                            ss.edit_customer_msg = f"แก้ไขลูกค้า {edit_cust_id} สำเร็จ"
+                            ss.clear_edit_customer = True
+                            st.rerun()
+                        except ValueError as e:
+                            st.error(str(e))
+            else:
+                st.info("เลือกรหัสลูกค้าด้านบนเพื่อเปิดแบบฟอร์มแก้ไข")
+
+
+# ---------------- แท็บ: เช่า / คืนชุด ----------------
+with tab_rental:
+    section_heading("ทำรายการเช่าชุด", "เลือกลูกค้า ชุดที่ว่าง และจำนวนวันที่ต้องการเช่า", "NEW RENTAL")
+    with st.container(border=True):
+        customer_options = {f"{c.customer_id} - {c.name}": c.customer_id for c in shop.all_customers()}
+        costume_options = {f"{c.code} - {c.name} ({c.category()})": c.code for c in shop.available_costumes()}
+
+        with st.form("rent_form", border=False):
+            rc1, rc2, rc3 = st.columns(3)
+            customer_label = rc1.selectbox("ลูกค้า", [""] + list(customer_options.keys()))
+            costume_label = rc2.selectbox("ชุด (เฉพาะที่ว่าง)", [""] + list(costume_options.keys()))
+            rent_days = rc3.number_input("จำนวนวัน", min_value=1, value=1, step=1)
+            submitted = st.form_submit_button("ยืนยันเช่า")
+            if submitted:
+                try:
+                    if not customer_label or not costume_label:
+                        raise ValueError("กรุณาเลือกลูกค้าและชุด")
+                    rental = shop.rent_costume(
+                        customer_options[customer_label], costume_options[costume_label], rent_days
+                    )
+                    success_msg = (
+                        f"{rental.rental_id}: {rental.customer.name} เช่า {rental.costume.name} "
+                        f"{rental.days} วัน = {rental.fee:.0f} บาท"
+                    )
+                    # POLYMORPHISM: แต่ละคลาสชุดมีข้อความส่วนลด/โปรโมชั่นของตัวเอง (หรือไม่มีก็ได้)
+                    note = rental.costume.rental_note(rental.days)
+                    if note:
+                        success_msg += f" ({note})"
+                    st.success(success_msg)
+                except ValueError as e:
+                    st.error(str(e))
+
+    section_heading("ประวัติการเช่า", "รายการเช่าทั้งหมดและสถานะปัจจุบัน", "HISTORY", "teal")
+    rentals = shop.all_rentals()
+    rentals_df = pd.DataFrame([
+        {
+            "รหัสเช่า": r.rental_id, "ลูกค้า": r.customer.name, "ชุด": r.costume.name,
+            "จำนวนวัน": r.days, "ค่าเช่า": r.fee,
+            "สถานะ": "คืนแล้ว" if r.returned else "กำลังเช่า",
+        }
+        for r in rentals
+    ])
+    st.dataframe(rentals_df, width='stretch', hide_index=True)
+
+    section_heading("คืนชุด", "ปิดรายการเช่าที่คืนชุดเรียบร้อยแล้ว", "RETURN", "pink")
+    active_ids = [r.rental_id for r in rentals if not r.returned]
+    returned_count = len(rentals) - len(active_ids)
+    total_revenue = sum(r.fee for r in rentals)
+
+    with st.container(border=True):
+        st.markdown("<span class='return-panel-marker'></span>", unsafe_allow_html=True)
+        st.markdown("<div class='return-panel-title'>เลือกรายการที่จะคืน</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='return-panel-desc'>เลือกรหัสรายการเช่าที่ลูกค้านำชุดมาคืน "
+            "ระบบจะอัปเดตสถานะชุดให้ว่างอีกครั้ง</div>",
+            unsafe_allow_html=True,
+        )
+        if active_ids:
+            return_id = st.selectbox("เลือกรหัสเช่าที่จะคืน", [""] + active_ids)
+            if st.button("คืนชุด", use_container_width=True) and return_id:
+                try:
+                    shop.return_costume(return_id)
+                    st.success(f"คืนชุดของรายการ {return_id} แล้ว")
+                    st.rerun()
+                except ValueError as e:
+                    st.error(str(e))
+        else:
+            st.info("ไม่มีรายการที่ต้องคืนในขณะนี้")
+
+        st.markdown(
+            "<div class='return-summary-grid'>"
+            f"<div class='return-stat'><div class='return-stat-label'>รอคืน</div>"
+            f"<div class='return-stat-value'>{len(active_ids)}</div></div>"
+            f"<div class='return-stat'><div class='return-stat-label'>คืนแล้ว</div>"
+            f"<div class='return-stat-value'>{returned_count}</div></div>"
+            f"<div class='return-stat'><div class='return-stat-label'>รายรับรวม</div>"
+            f"<div class='return-stat-value'>{total_revenue:.0f}</div></div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "<div class='return-tip'>เคล็ดลับ: ตรวจสภาพชุดก่อนคืนเงินมัดจำให้ลูกค้าเสมอ</div>",
+            unsafe_allow_html=True,
+        )
