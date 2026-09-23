@@ -398,7 +398,8 @@ CUSTOM_CSS = (
     ".stTextInput input,.stNumberInput input,div[data-baseweb='select']>div{border-radius:8px !important;border:1px solid var(--line) !important;font-family:'Prompt',sans-serif;}"
     ".stTextInput input:focus,.stNumberInput input:focus{border-color:var(--accent) !important;box-shadow:0 0 0 1px var(--accent) !important;}"
     ".stTextInput label,.stNumberInput label,.stSelectbox label{font-size:12px !important;font-weight:600 !important;letter-spacing:0.3px;color:var(--muted) !important;}"
-    "div[data-testid='stForm']{border:1px solid var(--line);border-radius:16px;padding:1.8rem 1.8rem 1rem;background-color:var(--card);box-shadow:0 4px 18px rgba(32,17,38,0.06);}"
+    "div[data-testid='stForm']{border:none;border-radius:0;padding:0;background-color:transparent;box-shadow:none;}"
+    "div[data-testid='stVerticalBlockBorderWrapper']>div>div[data-testid='stVerticalBlock']{border:1px solid var(--line);border-radius:16px;padding:1.8rem 1.8rem 1.4rem;background-color:var(--card);box-shadow:0 4px 18px rgba(32,17,38,0.06);}"
     "div[data-testid='stAlert']{border-radius:10px;border:1px solid var(--line);background-color:var(--card) !important;}"
     "div[data-testid='stAlert'] p{color:var(--ink) !important;font-weight:500;}"
     "hr{border-color:var(--line) !important;}"
@@ -501,58 +502,59 @@ def _cancel_new_type():
 with tab_costume:
     st.subheader("เพิ่มชุดใหม่")
 
-    type_options = list(COSTUME_CLASSES) + ss.custom_categories
+    with st.container(border=True):
+        type_options = list(COSTUME_CLASSES) + ss.custom_categories
 
-    if ss.adding_new_type:
-        # โหมดพิมพ์ได้: accept_new_options=True ให้พิมพ์ค่าใหม่ลงในดรอปดาวน์ได้เลย
-        tcol, bcol = st.columns([5, 1], vertical_alignment="bottom")
-        costume_type = tcol.selectbox(
-            "ประเภท (พิมพ์ชื่อประเภทใหม่แล้วกด Enter)",
-            type_options,
-            index=None,
-            placeholder="พิมพ์ชื่อประเภทใหม่ เช่น ชุดนักเรียน, ชุดราตรี",
-            accept_new_options=True,
-            key="new_type_select",
-        )
-        bcol.button("ยกเลิก", on_click=_cancel_new_type)
-    else:
-        costume_type = st.selectbox(
-            "ประเภท",
-            type_options + [NEW_TYPE_OPTION],
-            key="costume_type_select",
-            on_change=_on_type_change,
-        )
+        if ss.adding_new_type:
+            # โหมดพิมพ์ได้: accept_new_options=True ให้พิมพ์ค่าใหม่ลงในดรอปดาวน์ได้เลย
+            tcol, bcol = st.columns([5, 1], vertical_alignment="bottom")
+            costume_type = tcol.selectbox(
+                "ประเภท (พิมพ์ชื่อประเภทใหม่แล้วกด Enter)",
+                type_options,
+                index=None,
+                placeholder="พิมพ์ชื่อประเภทใหม่ เช่น ชุดนักเรียน, ชุดราตรี",
+                accept_new_options=True,
+                key="new_type_select",
+            )
+            bcol.button("ยกเลิก", on_click=_cancel_new_type)
+        else:
+            costume_type = st.selectbox(
+                "ประเภท",
+                type_options + [NEW_TYPE_OPTION],
+                key="costume_type_select",
+                on_change=_on_type_change,
+            )
 
-    # ข้อความสำเร็จที่ฝากไว้ก่อน st.rerun()
-    if "costume_msg" in ss:
-        st.success(ss.pop("costume_msg"))
+        # ข้อความสำเร็จที่ฝากไว้ก่อน st.rerun()
+        if "costume_msg" in ss:
+            st.success(ss.pop("costume_msg"))
 
-    with st.form("add_costume_form", clear_on_submit=True):
-        c2, c3, c4, c5 = st.columns(4)
-        name = c2.text_input("ชื่อชุด")
-        size = c3.text_input("ขนาด")
-        price = c4.number_input("ราคา/วัน", min_value=0.0, step=50.0)
-        deposit = c5.number_input("มัดจำ", min_value=0.0, step=100.0)
-        submitted = st.form_submit_button("เพิ่มชุด")
-        if submitted:
-            try:
-                if not name or not size:
-                    raise ValueError("กรอกชื่อและขนาดให้ครบ")
-                final_type = (costume_type or "").strip()
-                if not final_type or final_type == NEW_TYPE_OPTION:
-                    raise ValueError("พิมพ์ชื่อประเภทใหม่ในช่องประเภท แล้วกด Enter ก่อน")
+        with st.form("add_costume_form", clear_on_submit=True, border=False):
+            c2, c3, c4, c5 = st.columns(4)
+            name = c2.text_input("ชื่อชุด")
+            size = c3.text_input("ขนาด")
+            price = c4.number_input("ราคา/วัน", min_value=0.0, step=50.0)
+            deposit = c5.number_input("มัดจำ", min_value=0.0, step=100.0)
+            submitted = st.form_submit_button("เพิ่มชุด")
+            if submitted:
+                try:
+                    if not name or not size:
+                        raise ValueError("กรอกชื่อและขนาดให้ครบ")
+                    final_type = (costume_type or "").strip()
+                    if not final_type or final_type == NEW_TYPE_OPTION:
+                        raise ValueError("พิมพ์ชื่อประเภทใหม่ในช่องประเภท แล้วกด Enter ก่อน")
 
-                shop.add_costume(final_type, name, size, price, deposit)
+                    shop.add_costume(final_type, name, size, price, deposit)
 
-                # ประเภทใหม่ -> เพิ่มเข้าไปในดรอปดาวน์
-                if final_type not in COSTUME_CLASSES and final_type not in ss.custom_categories:
-                    ss.custom_categories.append(final_type)
+                    # ประเภทใหม่ -> เพิ่มเข้าไปในดรอปดาวน์
+                    if final_type not in COSTUME_CLASSES and final_type not in ss.custom_categories:
+                        ss.custom_categories.append(final_type)
 
-                ss.pending_type = final_type
-                ss.costume_msg = f"เพิ่มชุดสำเร็จ (ประเภท: {final_type})"
-                st.rerun()
-            except ValueError as e:
-                st.error(str(e))
+                    ss.pending_type = final_type
+                    ss.costume_msg = f"เพิ่มชุดสำเร็จ (ประเภท: {final_type})"
+                    st.rerun()
+                except ValueError as e:
+                    st.error(str(e))
 
     keyword = st.text_input("ค้นหาชื่อ / ประเภท / รหัสชุด", key="search_costume")
     costumes = shop.search_costumes(keyword) if keyword else shop.all_costumes()
