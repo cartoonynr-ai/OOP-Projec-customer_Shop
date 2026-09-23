@@ -20,6 +20,9 @@ import streamlit as st
 import pandas as pd
 
 
+# ==========================================================
+# 1) Costume (Abstract base class)
+# ==========================================================
 class Costume(ABC):
     def __init__(self, code, name, size, price_per_day, deposit=0):
         self.__code = code
@@ -94,7 +97,9 @@ class Costume(ABC):
         )
 
 
-
+# ==========================================================
+# 2) WeddingCostume  (Inheritance + Polymorphism)
+# ==========================================================
 class WeddingCostume(Costume):
     def category(self):
         return "ชุดแต่งงาน"
@@ -103,6 +108,9 @@ class WeddingCostume(Costume):
         return self.price_per_day * days
 
 
+# ==========================================================
+# 3) ThaiCostume  (Inheritance + Polymorphism)
+# ==========================================================
 class ThaiCostume(Costume):
     def category(self):
         return "ชุดไทย"
@@ -114,7 +122,9 @@ class ThaiCostume(Costume):
         return total
 
 
-
+# ==========================================================
+# 4) PartyCostume  (Inheritance + Polymorphism)
+# ==========================================================
 class PartyCostume(Costume):
     def category(self):
         return "ชุดปาร์ตี้"
@@ -132,7 +142,9 @@ COSTUME_CLASSES = {
 }
 
 
-
+# ==========================================================
+# 5) Customer
+# ==========================================================
 class Customer:
     def __init__(self, customer_id, name, phone):
         self.__id = customer_id
@@ -152,6 +164,9 @@ class Customer:
         return self.__phone
 
 
+# ==========================================================
+# 6) Rental (1 รายการเช่า)
+# ==========================================================
 class Rental:
     def __init__(self, rental_id, customer, costume, days, fee):
         self.__rental_id = rental_id
@@ -189,6 +204,9 @@ class Rental:
         self.__returned = True
 
 
+# ==========================================================
+# 7) RentalShop (ตรรกะหลักของระบบทั้งหมด)
+# ==========================================================
 class RentalShop:
     def __init__(self, name):
         self.__name = name
@@ -246,6 +264,25 @@ class RentalShop:
     def all_customers(self):
         return list(self.__customers.values())
 
+    def search_customers(self, keyword=""):
+        keyword = keyword.strip().lower()
+        return [
+            c for c in self.__customers.values()
+            if keyword in c.name.lower() or keyword in c.phone.lower() or keyword in c.customer_id.lower()
+        ]
+
+    def remove_customer(self, customer_id):
+        customer = self.__customers.get(customer_id)
+        if customer is None:
+            raise ValueError("ไม่พบลูกค้า")
+        has_active_rental = any(
+            r.customer.customer_id == customer_id and not r.returned
+            for r in self.__rentals.values()
+        )
+        if has_active_rental:
+            raise ValueError("ลูกค้ายังมีชุดที่เช่าอยู่ ลบไม่ได้")
+        del self.__customers[customer_id]
+
     # ---------- Rental (เช่า/คืน) ----------
     def rent_costume(self, customer_id, costume_code, days):
         customer = self.__customers.get(customer_id)
@@ -262,7 +299,7 @@ class RentalShop:
         if days <= 0:
             raise ValueError("จำนวนวันต้องมากกว่า 0")
 
-    
+        # POLYMORPHISM: costume คนละคลาสกัน แต่เรียก method เดียวกัน
         fee = costume.calculate_rental_fee(days)
 
         rental_id = f"R{self.__next_rental_no:03d}"
@@ -301,21 +338,25 @@ def seed_shop(shop: "RentalShop") -> None:
     u2 = shop.add_customer("วรรณา สุขใจ", "0898765432")
     u3 = shop.add_customer("ธนกร มั่งมี", "0812223333")
 
-    shop.rent_costume(u1.customer_id, "C002", 2)     
-    shop.rent_costume(u2.customer_id, "C006", 1)       
-    r3 = shop.rent_costume(u3.customer_id, w1.code, 3)  
-    shop.return_costume(r3.rental_id)                
+    shop.rent_costume(u1.customer_id, "C002", 2)      # กำลังเช่าอยู่
+    shop.rent_costume(u2.customer_id, "C006", 1)       # กำลังเช่าอยู่
+    r3 = shop.rent_costume(u3.customer_id, w1.code, 3)  # จะคืนด้านล่าง
+    shop.return_costume(r3.rental_id)                  # คืนแล้ว (โชว์ประวัติ)
 
 
-
+# ==========================================================
+# 8) ส่วนหน้าจอ Streamlit
+# ==========================================================
 st.set_page_config(page_title="ระบบร้านเช่าชุด", layout="wide")
 
-
+# เก็บ RentalShop ไว้ใน session_state เพื่อให้ข้อมูลไม่หายตอน Streamlit รันซ้ำ
+# เปิดแอปครั้งแรก (ยังไม่มี shop ใน session_state) -> เติมข้อมูลตัวอย่างให้อัตโนมัติ
 if "shop" not in st.session_state:
     st.session_state.shop = RentalShop("ร้านเช่าชุดสวยดี")
     seed_shop(st.session_state.shop)
 shop: RentalShop = st.session_state.shop
 
+# ---------- ธีมสี ขาว-ดำ-เหลี่ยม (ไม่มีอิโมจิ, มุมคมทุกจุด, ตัวหนังสือหนาเว้นระยะ) ----------
 CUSTOM_CSS = (
     "<style>"
     ":root{--ink:#201126;--ink-soft:#3a2440;--paper:#faf8fb;--card:#ffffff;--accent:#b3435f;--accent-hover:#94324a;--gold:#caa14b;--muted:#7a7182;--line:#e6dfec;}"
@@ -354,14 +395,16 @@ CUSTOM_CSS = (
     ".spec-sub{font-size:11px;color:#9a8ea3;margin-top:2px;}"
     "</style>"
 )
-
+# หมายเหตุสำคัญ: ต้องเขียน CSS ให้อยู่ใน "บรรทัดเดียว" ไม่มีบรรทัดว่างคั่นเลย
+# เพราะ st.markdown ตีความบรรทัดว่างในสตริงเป็นการขึ้นย่อหน้าใหม่แบบ Markdown
+# ถ้ามีบรรทัดว่างอยู่กลาง <style> มันจะตัด CSS ที่เหลือให้โผล่มาเป็นข้อความธรรมดาบนหน้าเว็บ (บั๊กที่เจอ)
 GOOGLE_FONT_LINK = (
     "<link rel='preconnect' href='https://fonts.googleapis.com'>"
     "<link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap' rel='stylesheet'>"
 )
 st.markdown(GOOGLE_FONT_LINK + CUSTOM_CSS, unsafe_allow_html=True)
 
-
+# ---------- Hero section: หัวข้อใหญ่ + แถบสถิติระบบแบบ live ----------
 _total_costumes = len(shop.all_costumes())
 _available = len(shop.available_costumes())
 _rented = _total_costumes - _available
@@ -378,9 +421,10 @@ HANGER_ICON = (
 HERO_HTML = (
     "<div class='hero'>"
     "<div class='hero-mark'>" + HANGER_ICON + "<span class='hero-mark-text'>COSTUME RENTAL SHOP</span></div>"
-  
-    "<div class='hero-title'>จัดการร้านเช่าชุด<br></div>"
-   
+    "<div class='hero-eyebrow'>OOP MINI PROJECT · STREAMLIT</div>"
+    "<div class='hero-title'>จัดการร้านเช่าชุด<br>อย่างเป็นระบบ</div>"
+    "<div class='hero-sub'>เพิ่มชุด ค้นหา เช่า และคืนชุดได้ครบในที่เดียว "
+    "ระบบคำนวณค่าเช่าให้อัตโนมัติตามประเภทชุด พร้อมติดตามสถานะแบบเรียลไทม์</div>"
     "<div class='spec-bar'>"
     f"<div class='spec-item'><div class='spec-label'>ชุดทั้งหมด</div><div class='spec-value'>{_total_costumes}</div><div class='spec-sub'>รายการในคลัง</div></div>"
     f"<div class='spec-item'><div class='spec-label'>ชุดว่าง</div><div class='spec-value'>{_available}</div><div class='spec-sub'>พร้อมให้เช่า</div></div>"
@@ -406,6 +450,7 @@ def costumes_dataframe(costumes):
     ])
 
 
+# ---------------- แท็บ: คลังชุด ----------------
 with tab_costume:
     with st.form("add_costume_form", clear_on_submit=True):
         st.subheader("เพิ่มชุดใหม่")
@@ -441,8 +486,32 @@ with tab_costume:
                 except ValueError as e:
                     st.error(str(e))
 
+    # ---- แก้ไขชุดที่มีอยู่แล้ว (แก้ได้แม้กำลังถูกเช่าอยู่ เช่น แก้ราคา/ชื่อที่พิมพ์ผิด) ----
+    with st.expander("แก้ไขชุดที่มีอยู่แล้ว"):
+        all_codes = [c.code for c in shop.all_costumes()]
+        edit_code = st.selectbox("เลือกรหัสชุดที่จะแก้ไข", [""] + all_codes, key="edit_costume_select")
+        if edit_code:
+            costume_obj = next(c for c in shop.all_costumes() if c.code == edit_code)
+            with st.form(f"edit_costume_form_{edit_code}"):
+                ec1, ec2, ec3, ec4 = st.columns(4)
+                new_name = ec1.text_input("ชื่อชุด", value=costume_obj.name)
+                new_size = ec2.text_input("ขนาด", value=costume_obj.size)
+                new_price = ec3.number_input("ราคา/วัน", min_value=0.0, step=50.0, value=costume_obj.price_per_day)
+                new_deposit = ec4.number_input("มัดจำ", min_value=0.0, step=100.0, value=costume_obj.deposit)
+                if st.form_submit_button("บันทึกการแก้ไข"):
+                    try:
+                        # ใช้ setter ของคลาส Costume ตรงๆ (มี validation อยู่แล้ว เช่น ราคาห้ามติดลบ)
+                        costume_obj.name = new_name
+                        costume_obj.size = new_size
+                        costume_obj.price_per_day = new_price
+                        costume_obj.deposit = new_deposit
+                        st.success(f"แก้ไขชุด {edit_code} สำเร็จ")
+                        st.rerun()
+                    except ValueError as e:
+                        st.error(str(e))
 
 
+# ---------------- แท็บ: ลูกค้า ----------------
 with tab_customer:
     with st.form("add_customer_form", clear_on_submit=True):
         st.subheader("เพิ่มลูกค้า")
@@ -459,14 +528,28 @@ with tab_customer:
                 shop.add_customer(cust_name, cust_phone)
                 st.success("เพิ่มลูกค้าสำเร็จ")
 
+    cust_keyword = st.text_input("ค้นหาชื่อ / เบอร์โทร / รหัสลูกค้า", key="search_customer")
+    filtered_customers = shop.search_customers(cust_keyword) if cust_keyword else shop.all_customers()
+
     customers_df = pd.DataFrame([
         {"รหัสลูกค้า": c.customer_id, "ชื่อ": c.name, "เบอร์โทร": c.phone}
-        for c in shop.all_customers()
+        for c in filtered_customers
     ])
     st.dataframe(customers_df, width='stretch', hide_index=True)
 
+    if filtered_customers:
+        cust_codes = [c.customer_id for c in filtered_customers]
+        del_cust_id = st.selectbox("เลือกรหัสลูกค้าที่จะลบ", [""] + cust_codes)
+        if st.button("ลบลูกค้าที่เลือก") and del_cust_id:
+            try:
+                shop.remove_customer(del_cust_id)
+                st.success(f"ลบลูกค้า {del_cust_id} แล้ว")
+                st.rerun()
+            except ValueError as e:
+                st.error(str(e))
 
 
+# ---------------- แท็บ: เช่า / คืนชุด ----------------
 with tab_rental:
     st.subheader("ทำรายการเช่าชุด")
     customer_options = {f"{c.customer_id} - {c.name}": c.customer_id for c in shop.all_customers()}
