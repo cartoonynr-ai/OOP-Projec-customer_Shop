@@ -478,19 +478,23 @@ if "custom_categories" not in st.session_state:
     st.session_state.custom_categories = []
 
 with tab_costume:
+    st.subheader("เพิ่มชุดใหม่")
+
+    # เลือกประเภทไว้นอกฟอร์ม เพื่อให้หน้าจอรีเฟรชทันทีที่เลือก
+    # "+ เพิ่มประเภทใหม่..." แล้วโชว์ช่องกรอกชื่อประเภทให้เฉพาะตอนจำเป็นเท่านั้น
+    type_options = list(COSTUME_CLASSES.keys()) + st.session_state.custom_categories + [NEW_TYPE_OPTION]
+    costume_type = st.selectbox("ประเภท", type_options, key="costume_type_select")
+
+    new_type_name = ""
+    if costume_type == NEW_TYPE_OPTION:
+        new_type_name = st.text_input("ชื่อประเภทใหม่", placeholder="เช่น ชุดนักเรียน, ชุดราตรี")
+
     with st.form("add_costume_form", clear_on_submit=True):
-        st.subheader("เพิ่มชุดใหม่")
-        type_options = list(COSTUME_CLASSES.keys()) + st.session_state.custom_categories + [NEW_TYPE_OPTION]
-        c1, c2, c3, c4, c5 = st.columns(5)
-        costume_type = c1.selectbox("ประเภท", type_options)
+        c2, c3, c4, c5 = st.columns(4)
         name = c2.text_input("ชื่อชุด")
         size = c3.text_input("ขนาด")
         price = c4.number_input("ราคา/วัน", min_value=0.0, step=50.0)
         deposit = c5.number_input("มัดจำ", min_value=0.0, step=100.0)
-        new_type_name = st.text_input(
-            "ชื่อประเภทใหม่ (กรอกเฉพาะตอนเลือก \"+ เพิ่มประเภทใหม่...\" ด้านบน)",
-            placeholder="เช่น ชุดนักเรียน, ชุดราตรี",
-        )
         submitted = st.form_submit_button("เพิ่มชุด")
         if submitted:
             try:
