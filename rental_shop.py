@@ -632,10 +632,8 @@ HANGER_ICON = (
 HERO_HTML = (
     "<div class='hero'>"
     "<div class='hero-mark'>" + HANGER_ICON + "<span class='hero-mark-text'>COSTUME RENTAL SHOP</span></div>"
-    "<div class='hero-eyebrow'>OOP MINI PROJECT · STREAMLIT · SQLITE</div>"
+    
     "<div class='hero-title'>จัดการร้านเช่าชุด<br>อย่างเป็นระบบ</div>"
-    "<div class='hero-sub'>เพิ่มชุด ค้นหา เช่า และคืนชุดได้ครบในที่เดียว "
-    "ระบบคำนวณค่าเช่าให้อัตโนมัติตามประเภทชุด พร้อมติดตามสถานะแบบเรียลไทม์ และบันทึกข้อมูลถาวรลง SQLite</div>"
     "<div class='spec-bar'>"
     f"<div class='spec-item'><div class='spec-label'>ชุดทั้งหมด</div><div class='spec-value'>{_total_costumes}</div><div class='spec-sub'>รายการในคลัง</div></div>"
     f"<div class='spec-item'><div class='spec-label'>ชุดว่าง</div><div class='spec-value'>{_available}</div><div class='spec-sub'>พร้อมให้เช่า</div></div>"
