@@ -632,9 +632,10 @@ HANGER_ICON = (
 HERO_HTML = (
     "<div class='hero'>"
     "<div class='hero-mark'>" + HANGER_ICON + "<span class='hero-mark-text'>COSTUME RENTAL SHOP</span></div>"
-  
-    "<div class='hero-title'>จัดการร้านเช่าชุดอย่างเป็นระบบ</div>"
-
+    "<div class='hero-eyebrow'>OOP MINI PROJECT · STREAMLIT · SQLITE</div>"
+    "<div class='hero-title'>จัดการร้านเช่าชุด<br>อย่างเป็นระบบ</div>"
+    "<div class='hero-sub'>เพิ่มชุด ค้นหา เช่า และคืนชุดได้ครบในที่เดียว "
+    "ระบบคำนวณค่าเช่าให้อัตโนมัติตามประเภทชุด พร้อมติดตามสถานะแบบเรียลไทม์ และบันทึกข้อมูลถาวรลง SQLite</div>"
     "<div class='spec-bar'>"
     f"<div class='spec-item'><div class='spec-label'>ชุดทั้งหมด</div><div class='spec-value'>{_total_costumes}</div><div class='spec-sub'>รายการในคลัง</div></div>"
     f"<div class='spec-item'><div class='spec-label'>ชุดว่าง</div><div class='spec-value'>{_available}</div><div class='spec-sub'>พร้อมให้เช่า</div></div>"
@@ -763,6 +764,13 @@ with tab_costume:
 
     # ---- แก้ไขชุดที่มีอยู่แล้ว (แก้ได้แม้กำลังถูกเช่าอยู่ เช่น แก้ราคา/ชื่อที่พิมพ์ผิด) ----
     with st.expander("แก้ไขชุดที่มีอยู่แล้ว"):
+        # เพิ่งบันทึกสำเร็จ -> เคลียร์ตัวเลือกกลับเป็นค่าว่าง (ต้องทำ "ก่อน" สร้าง widget)
+        if "clear_edit_costume" in ss:
+            ss.edit_costume_select = ""
+            del ss["clear_edit_costume"]
+        if "edit_costume_msg" in ss:
+            st.success(ss.pop("edit_costume_msg"))
+
         all_codes = [c.code for c in shop.all_costumes()]
         edit_code = st.selectbox("เลือกรหัสชุดที่จะแก้ไข", [""] + all_codes, key="edit_costume_select")
         if edit_code:
@@ -781,7 +789,8 @@ with tab_costume:
                         costume_obj.price_per_day = new_price
                         costume_obj.deposit = new_deposit
                         shop.persist_costume(costume_obj)  # บันทึกการแก้ไขลง SQLite
-                        st.success(f"แก้ไขชุด {edit_code} สำเร็จ")
+                        ss.edit_costume_msg = f"แก้ไขชุด {edit_code} สำเร็จ"
+                        ss.clear_edit_costume = True
                         st.rerun()
                     except ValueError as e:
                         st.error(str(e))
@@ -826,6 +835,13 @@ with tab_customer:
 
     # ---- แก้ไขข้อมูลลูกค้าที่มีอยู่แล้ว ----
     with st.expander("แก้ไขข้อมูลลูกค้า"):
+        # เพิ่งบันทึกสำเร็จ -> เคลียร์ตัวเลือกกลับเป็นค่าว่าง (ต้องทำ "ก่อน" สร้าง widget)
+        if "clear_edit_customer" in ss:
+            ss.edit_customer_select = ""
+            del ss["clear_edit_customer"]
+        if "edit_customer_msg" in ss:
+            st.success(ss.pop("edit_customer_msg"))
+
         all_cust_ids = [c.customer_id for c in shop.all_customers()]
         edit_cust_id = st.selectbox("เลือกรหัสลูกค้าที่จะแก้ไข", [""] + all_cust_ids, key="edit_customer_select")
         if edit_cust_id:
@@ -840,7 +856,8 @@ with tab_customer:
                         customer_obj.name = new_cust_name
                         customer_obj.phone = new_cust_phone
                         shop.persist_customer(customer_obj)  # บันทึกการแก้ไขลง SQLite
-                        st.success(f"แก้ไขลูกค้า {edit_cust_id} สำเร็จ")
+                        ss.edit_customer_msg = f"แก้ไขลูกค้า {edit_cust_id} สำเร็จ"
+                        ss.clear_edit_customer = True
                         st.rerun()
                     except ValueError as e:
                         st.error(str(e))
