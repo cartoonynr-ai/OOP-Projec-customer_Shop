@@ -135,23 +135,6 @@ class PartyCostume(Costume):
         return self.price_per_day + (days - 1) * self.price_per_day * 0.5  # วันถัดไปครึ่งราคา
 
 
-# ==========================================================
-# 4.5) CustomCostume (Inheritance + Polymorphism)
-# รองรับ "ประเภทชุด" ที่ผู้ใช้พิมพ์เพิ่มเองนอกเหนือ 3 ประเภทหลัก
-# ใช้สูตรราคามาตรฐาน (ไม่มีส่วนลด/โปรโมชันพิเศษแบบ 3 คลาสด้านบน)
-# ==========================================================
-class CustomCostume(Costume):
-    def __init__(self, code, name, size, price_per_day, deposit=0, category_name="ชุดอื่นๆ"):
-        super().__init__(code, name, size, price_per_day, deposit)
-        self.__category_name = category_name
-
-    def category(self):
-        return self.__category_name
-
-    def calculate_rental_fee(self, days):
-        return self.price_per_day * days
-
-
 COSTUME_CLASSES = {
     "ชุดแต่งงาน": WeddingCostume,
     "ชุดไทย": ThaiCostume,
@@ -240,15 +223,10 @@ class RentalShop:
 
     # ---------- Costume ----------
     def add_costume(self, costume_type, name, size, price_per_day, deposit=0):
+        cls = COSTUME_CLASSES[costume_type]
         code = f"C{self.__next_costume_no:03d}"
         self.__next_costume_no += 1
-        if costume_type in COSTUME_CLASSES:
-            # ประเภทหลัก 3 แบบ -> ใช้คลาสเฉพาะที่มีสูตรราคาของตัวเอง (polymorphism)
-            cls = COSTUME_CLASSES[costume_type]
-            costume = cls(code, name, size, price_per_day, deposit)
-        else:
-            # ประเภทที่ผู้ใช้พิมพ์เพิ่มเอง -> ใช้ CustomCostume สูตรราคามาตรฐาน
-            costume = CustomCostume(code, name, size, price_per_day, deposit, category_name=costume_type)
+        costume = cls(code, name, size, price_per_day, deposit)
         self.__costumes[code] = costume
         return costume
 
@@ -473,24 +451,11 @@ def costumes_dataframe(costumes):
 
 
 # ---------------- แท็บ: คลังชุด ----------------
-NEW_TYPE_OPTION = "+ เพิ่มประเภทใหม่..."
-if "custom_categories" not in st.session_state:
-    st.session_state.custom_categories = []
-
 with tab_costume:
-    st.subheader("เพิ่มชุดใหม่")
-
-    # เลือกประเภทไว้นอกฟอร์ม เพื่อให้หน้าจอรีเฟรชทันทีที่เลือก
-    # "+ เพิ่มประเภทใหม่..." แล้วโชว์ช่องกรอกชื่อประเภทให้เฉพาะตอนจำเป็นเท่านั้น
-    type_options = list(COSTUME_CLASSES.keys()) + st.session_state.custom_categories + [NEW_TYPE_OPTION]
-    costume_type = st.selectbox("ประเภท", type_options, key="costume_type_select")
-
-    new_type_name = ""
-    if costume_type == NEW_TYPE_OPTION:
-        new_type_name = st.text_input("ชื่อประเภทใหม่", placeholder="เช่น ชุดนักเรียน, ชุดราตรี")
-
     with st.form("add_costume_form", clear_on_submit=True):
-        c2, c3, c4, c5 = st.columns(4)
+        st.subheader("เพิ่มชุดใหม่")
+        c1, c2, c3, c4, c5 = st.columns(5)
+        costume_type = c1.selectbox("ประเภท", list(COSTUME_CLASSES.keys()))
         name = c2.text_input("ชื่อชุด")
         size = c3.text_input("ขนาด")
         price = c4.number_input("ราคา/วัน", min_value=0.0, step=50.0)
@@ -500,16 +465,8 @@ with tab_costume:
             try:
                 if not name or not size:
                     raise ValueError("กรอกชื่อและขนาดให้ครบ")
-                if costume_type == NEW_TYPE_OPTION:
-                    final_type = new_type_name.strip()
-                    if not final_type:
-                        raise ValueError("กรอกชื่อประเภทใหม่ให้ครบ")
-                    if final_type not in COSTUME_CLASSES and final_type not in st.session_state.custom_categories:
-                        st.session_state.custom_categories.append(final_type)
-                else:
-                    final_type = costume_type
-                shop.add_costume(final_type, name, size, price, deposit)
-                st.success(f"เพิ่มชุดสำเร็จ (ประเภท: {final_type})")
+                shop.add_costume(costume_type, name, size, price, deposit)
+                st.success("เพิ่มชุดสำเร็จ")
             except ValueError as e:
                 st.error(str(e))
 
