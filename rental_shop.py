@@ -1,24 +1,3 @@
-"""
-ระบบร้านเช่าชุด (Costume Rental Shop Management System)
-Mini Project - OOP
-เวอร์ชัน Streamlit (เว็บแอปที่เขียนด้วย Python ล้วน ไม่ต้องเขียน HTML/CSS/JS เอง)
-
-วิธีรัน:
-    pip install streamlit
-    streamlit run costume_rental_streamlit.py
-
-ข้อมูลถูกเก็บถาวรใน SQLite (ไฟล์ shop.db ที่จะถูกสร้างขึ้นในโฟลเดอร์เดียวกับไฟล์นี้)
-ปิดแอปแล้วเปิดใหม่ ข้อมูลชุด/ลูกค้า/ประวัติการเช่าจะยังอยู่ครบ
-
-สรุปตำแหน่งหลักการ OOP (ใช้พูดตอน present ได้เลย):
-- Encapsulation : Costume.__code, __price_per_day ฯลฯ (private) เข้าถึงผ่าน property/setter
-- Inheritance   : WeddingCostume, ThaiCostume, PartyCostume สืบทอดจาก Costume (abstract base)
-- Polymorphism  : costume.calculate_rental_fee(days) และ costume.category()
-                  ถูก override ต่างกันในแต่ละคลาสลูก แต่เรียกผ่าน interface เดียวกัน
-                  (ดูจุดเรียกใช้จริงใน RentalShop.rent_costume)
-- Persistence   : คลาส Database (แยกหน้าที่จัดการ SQLite ต่างหาก) ถูกเรียกใช้จาก
-                  RentalShop ทุกจุดที่ข้อมูลเปลี่ยน (add/remove/rent/return/edit)
-"""
 
 import os
 import sqlite3
@@ -30,9 +9,6 @@ import pandas as pd
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shop.db")
 
 
-# ==========================================================
-# 1) Costume (Abstract base class)
-# ==========================================================
 class Costume(ABC):
     def __init__(self, code, name, size, price_per_day, deposit=0, available=True):
         self.__code = code
@@ -107,9 +83,7 @@ class Costume(ABC):
         )
 
 
-# ==========================================================
-# 2) WeddingCostume  (Inheritance + Polymorphism)
-# ==========================================================
+
 class WeddingCostume(Costume):
     def category(self):
         return "ชุดแต่งงาน"
@@ -118,9 +92,7 @@ class WeddingCostume(Costume):
         return self.price_per_day * days
 
 
-# ==========================================================
-# 3) ThaiCostume  (Inheritance + Polymorphism)
-# ==========================================================
+
 class ThaiCostume(Costume):
     def category(self):
         return "ชุดไทย"
@@ -132,9 +104,7 @@ class ThaiCostume(Costume):
         return total
 
 
-# ==========================================================
-# 4) PartyCostume  (Inheritance + Polymorphism)
-# ==========================================================
+
 class PartyCostume(Costume):
     def category(self):
         return "ชุดปาร์ตี้"
@@ -145,11 +115,6 @@ class PartyCostume(Costume):
         return self.price_per_day + (days - 1) * self.price_per_day * 0.5  # วันถัดไปครึ่งราคา
 
 
-# ==========================================================
-# 4.5) CustomCostume (Inheritance + Polymorphism)
-# รองรับ "ประเภทชุด" ที่ผู้ใช้พิมพ์เพิ่มเองนอกเหนือ 3 ประเภทหลัก
-# ใช้สูตรราคามาตรฐาน (ไม่มีส่วนลด/โปรโมชันพิเศษแบบ 3 คลาสด้านบน)
-# ==========================================================
 class CustomCostume(Costume):
     def __init__(self, code, name, size, price_per_day, deposit=0, category_name="ชุดอื่นๆ", available=True):
         super().__init__(code, name, size, price_per_day, deposit, available)
@@ -176,10 +141,6 @@ def build_costume(code, category, name, size, price_per_day, deposit, available=
         return cls(code, name, size, price_per_day, deposit, available)
     return CustomCostume(code, name, size, price_per_day, deposit, category_name=category, available=available)
 
-
-# ==========================================================
-# 5) Customer
-# ==========================================================
 class Customer:
     def __init__(self, customer_id, name, phone):
         self.__id = customer_id
@@ -211,9 +172,7 @@ class Customer:
         self.__phone = value
 
 
-# ==========================================================
-# 6) Rental (1 รายการเช่า)
-# ==========================================================
+
 class Rental:
     def __init__(self, rental_id, customer, costume, days, fee, returned=False):
         self.__rental_id = rental_id
@@ -251,11 +210,7 @@ class Rental:
         self.__returned = True
 
 
-# ==========================================================
-# 7) Database (SQLite persistence layer)
-# แยกหน้าที่ "คุยกับ SQLite" ออกจาก RentalShop โดยเฉพาะ
-# RentalShop ไม่รู้เรื่อง SQL เลย แค่เรียก method ของ Database เป็น CRUD ธรรมดา
-# ==========================================================
+
 class Database:
     def __init__(self, path=DB_PATH):
         self.__conn = sqlite3.connect(path, check_same_thread=False)
@@ -295,7 +250,7 @@ class Database:
         )
         self.__conn.commit()
 
-    # ---------- meta (ใช้เช็คว่าเคยเติมข้อมูลตัวอย่างไปแล้วหรือยัง) ----------
+   
     def is_seeded(self):
         row = self.__conn.execute("SELECT value FROM meta WHERE key='seeded'").fetchone()
         return row is not None
@@ -304,7 +259,7 @@ class Database:
         self.__conn.execute("INSERT OR REPLACE INTO meta (key, value) VALUES ('seeded', '1')")
         self.__conn.commit()
 
-    # ---------- costumes ----------
+
     def fetch_costumes(self):
         return self.__conn.execute(
             "SELECT code, category, name, size, price_per_day, deposit, available FROM costumes ORDER BY code"
@@ -325,7 +280,7 @@ class Database:
         self.__conn.execute("DELETE FROM costumes WHERE code=?", (code,))
         self.__conn.commit()
 
-    # ---------- customers ----------
+  
     def fetch_customers(self):
         return self.__conn.execute(
             "SELECT customer_id, name, phone FROM customers ORDER BY customer_id"
@@ -360,10 +315,6 @@ class Database:
         self.__conn.commit()
 
 
-# ==========================================================
-# 8) RentalShop (ตรรกะหลักของระบบทั้งหมด)
-# ทุก method ที่ทำให้ข้อมูลเปลี่ยน จะเรียก self.__db ให้บันทึกลง SQLite ทันที
-# ==========================================================
 class RentalShop:
     def __init__(self, name, db: Database):
         self.__name = name
@@ -380,7 +331,7 @@ class RentalShop:
     def name(self):
         return self.__name
 
-    # ---------- โหลดข้อมูลเดิมจาก SQLite ตอนเปิดแอป ----------
+
     def _load_from_db(self):
         for code, category, name, size, price, deposit, available in self.__db.fetch_costumes():
             costume = build_costume(code, category, name, size, price, deposit, bool(available))
@@ -408,7 +359,6 @@ class RentalShop:
                 seen.append(cat)
         return seen
 
-    # ---------- Costume ----------
     def add_costume(self, costume_type, name, size, price_per_day, deposit=0):
         code = f"C{self.__next_costume_no:03d}"
         self.__next_costume_no += 1
@@ -445,7 +395,6 @@ class RentalShop:
     def available_costumes(self):
         return [c for c in self.__costumes.values() if c.available]
 
-    # ---------- Customer ----------
     def add_customer(self, name, phone):
         cid = f"U{self.__next_customer_no:03d}"
         self.__next_customer_no += 1
@@ -481,7 +430,6 @@ class RentalShop:
         del self.__customers[customer_id]
         self.__db.delete_customer(customer_id)
 
-    # ---------- Rental (เช่า/คืน) ----------
     def rent_costume(self, customer_id, costume_code, days):
         customer = self.__customers.get(customer_id)
         if customer is None:
@@ -497,7 +445,6 @@ class RentalShop:
         if days <= 0:
             raise ValueError("จำนวนวันต้องมากกว่า 0")
 
-        # POLYMORPHISM: costume คนละคลาสกัน แต่เรียก method เดียวกัน
         fee = costume.calculate_rental_fee(days)
 
         rental_id = f"R{self.__next_rental_no:03d}"
@@ -507,7 +454,7 @@ class RentalShop:
         costume.mark_rented()
 
         self.__db.upsert_rental(rental)
-        self.__db.upsert_costume(costume)  # อัปเดตสถานะ available=False ลง SQLite
+        self.__db.upsert_costume(costume)  
         return rental
 
     def return_costume(self, rental_id):
@@ -520,7 +467,7 @@ class RentalShop:
         rental.costume.mark_returned()
 
         self.__db.upsert_rental(rental)
-        self.__db.upsert_costume(rental.costume)  # อัปเดตสถานะ available=True ลง SQLite
+        self.__db.upsert_costume(rental.costume)  
         return rental
 
     def all_rentals(self):
@@ -549,24 +496,21 @@ def seed_shop(shop: "RentalShop") -> None:
     shop.return_costume(r3.rental_id)                  # คืนแล้ว (โชว์ประวัติ)
 
 
-# ==========================================================
-# 9) ส่วนหน้าจอ Streamlit
-# ==========================================================
+
 st.set_page_config(page_title="ระบบร้านเช่าชุด", layout="wide")
 
-# เก็บ RentalShop ไว้ใน session_state เพื่อให้ข้อมูลไม่หายตอน Streamlit รันซ้ำ
-# ข้อมูลจริงอยู่ใน SQLite (shop.db) แล้ว -> ปิด/เปิดแอปใหม่ หรือรีสตาร์ทเซิร์ฟเวอร์ ข้อมูลก็ยังอยู่
+
 if "shop" not in st.session_state:
     db = Database()
     shop = RentalShop("ร้านเช่าชุดสวยดี", db)
     if not db.is_seeded():
-        # เปิดแอปครั้งแรกสุด (ยังไม่มีไฟล์ shop.db มาก่อน) -> เติมข้อมูลตัวอย่างให้อัตโนมัติ
+        
         seed_shop(shop)
         db.mark_seeded()
     st.session_state.shop = shop
 shop: RentalShop = st.session_state.shop
 
-# ---------- Modern colorful UI theme ----------
+
 CUSTOM_CSS = (
     "<style>"
     ":root{--ink:#182033;--muted:#667085;--line:#e4e7ec;--card:#ffffff;--indigo:#5b5ce2;--indigo-dark:#4444c7;--violet:#8b5cf6;--pink:#ec4899;--cyan:#06b6d4;--teal:#14b8a6;--green:#22a06b;--amber:#f59e0b;--red:#dc4c64;--shadow:0 12px 34px rgba(38,45,77,.09);}"
@@ -668,7 +612,7 @@ GOOGLE_FONT_LINK = (
 )
 st.markdown(GOOGLE_FONT_LINK + CUSTOM_CSS, unsafe_allow_html=True)
 
-# ---------- Hero section: live dashboard ----------
+
 _total_costumes = len(shop.all_costumes())
 _available = len(shop.available_costumes())
 _rented = _total_costumes - _available
@@ -722,7 +666,7 @@ def costumes_dataframe(costumes):
     ])
 
 
-# ---------------- แท็บ: คลังชุด ----------------
+
 NEW_TYPE_OPTION = "+ เพิ่มประเภทใหม่..."
 ss = st.session_state
 ss.setdefault("adding_new_type", False)
@@ -863,7 +807,7 @@ with tab_costume:
                 st.info("เลือกรหัสชุดด้านบนเพื่อเปิดแบบฟอร์มแก้ไข")
 
 
-# ---------------- แท็บ: ลูกค้า ----------------
+
 with tab_customer:
     section_heading("เพิ่มลูกค้า", "บันทึกข้อมูลลูกค้าใหม่เข้าสู่ระบบ", "NEW CUSTOMER")
     with st.container(border=True):
