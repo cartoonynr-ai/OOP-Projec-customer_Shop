@@ -379,7 +379,7 @@ HERO_HTML = (
     "<div class='hero'>"
     "<div class='hero-mark'>" + HANGER_ICON + "<span class='hero-mark-text'>COSTUME RENTAL SHOP</span></div>"
   
-    "<div class='hero-title'>จัดการร้านเช่าชุด<br>อย่างเป็นระบบ</div>"
+    "<div class='hero-title'>จัดการร้านเช่าชุด<br></div>"
    
     "<div class='spec-bar'>"
     f"<div class='spec-item'><div class='spec-label'>ชุดทั้งหมด</div><div class='spec-value'>{_total_costumes}</div><div class='spec-sub'>รายการในคลัง</div></div>"
