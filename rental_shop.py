@@ -659,12 +659,13 @@ tab_costume, tab_customer, tab_rental = st.tabs(["คลังชุด", "ล�
 
 def section_heading(title, subtitle, tag, tone="indigo"):
     tone_class = "" if tone == "indigo" else tone
+    tag_html = f"<div class='section-tag'>{tag}</div>" if tag else ""
     st.markdown(
         f"<div class='section-head {tone_class}'>"
         "<div class='section-title-wrap'><div class='section-accent'></div><div>"
         f"<div class='section-title'>{title}</div><div class='section-sub'>{subtitle}</div>"
         "</div></div>"
-        f"<div class='section-tag'>{tag}</div></div>",
+        f"{tag_html}</div>",
         unsafe_allow_html=True,
     )
 
@@ -705,7 +706,7 @@ def _cancel_new_type():
 
 
 with tab_costume:
-    section_heading("เพิ่มชุดใหม่", "เพิ่มรายการชุดเข้าสู่คลังและกำหนดราคาเช่า", "ADD COSTUME")
+    section_heading("เพิ่มชุดใหม่", "เพิ่มรายการชุดเข้าสู่คลังและกำหนดราคาเช่า", "")
     with st.container(border=True):
         type_options = list(COSTUME_CLASSES) + ss.custom_categories
 
@@ -755,12 +756,12 @@ with tab_costume:
                 except ValueError as e:
                     st.error(str(e))
 
-    section_heading("คลังชุด", "ค้นหาและตรวจสอบสถานะชุดทั้งหมดในระบบ", "INVENTORY", "teal")
+    section_heading("คลังชุด", "ค้นหาและตรวจสอบสถานะชุดทั้งหมดในระบบ", "", "teal")
     keyword = st.text_input("ค้นหาชื่อ / ประเภท / รหัสชุด", key="search_costume", placeholder="พิมพ์คำค้นหา...")
     costumes = shop.search_costumes(keyword) if keyword else shop.all_costumes()
     st.dataframe(costumes_dataframe(costumes), width='stretch', hide_index=True)
 
-    section_heading("จัดการข้อมูลชุด", "แก้ไขรายละเอียดหรือลบชุดที่ว่างออกจากระบบ", "MANAGE", "pink")
+    section_heading("จัดการข้อมูลชุด", "แก้ไขรายละเอียดหรือลบชุดที่ว่างออกจากระบบ", "", "pink")
     manage_left, manage_right = st.columns(2, gap="large")
     with manage_left:
         with st.container(border=True):
