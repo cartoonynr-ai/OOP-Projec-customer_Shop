@@ -248,7 +248,7 @@ class Database:
                 name TEXT NOT NULL,
                 phone TEXT NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS rentals (
+            CREATE TABLE IF NOT EXISTS rentals2 (
                 rental_id TEXT PRIMARY KEY,
                 customer_id TEXT NOT NULL,
                 costumer_code2 TEXT NOT NULL,
@@ -314,12 +314,12 @@ class Database:
     # ---------- rentals ----------
     def fetch_rentals(self):
         return self.__conn.execute(
-            "SELECT rental_id, customer_id, costumer_code2, days, fee, returned FROM rentals ORDER BY rental_id"
+            "SELECT rental_id, customer_id, costumer_code2, days, fee, returned FROM rentals2 ORDER BY rental_id"
         ).fetchall()
 
     def upsert_rental(self, rental):
         self.__conn.execute(
-            "INSERT OR REPLACE INTO rentals (rental_id, customer_id, costumer_code2, days, fee, returned) "
+            "INSERT OR REPLACE INTO rentals2 (rental_id, customer_id, costumer_code2, days, fee, returned) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
                 rental.rental_id, rental.customer.customer_id, rental.costumer.code,
