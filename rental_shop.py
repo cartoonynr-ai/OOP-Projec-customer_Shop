@@ -8,7 +8,7 @@ import pandas as pd
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shop.db")
 
 
-class Costume(ABC):
+class Costumer(ABC):
     def __init__(self, code, name, size, price_per_day, deposit=0, available=True):
         self.__code = code
         self.__name = name
@@ -88,7 +88,7 @@ class Costume(ABC):
 
 
 
-class WeddingCostume(Costume):
+class WeddingCostumer(Costumer):
     def category(self):
         return "ชุดแต่งงาน"
 
@@ -97,7 +97,7 @@ class WeddingCostume(Costume):
 
 
 
-class ThaiCostume(Costume):
+class ThaiCostumer(Costumer):
     def category(self):
         return "ชุดไทย"
 
@@ -114,7 +114,7 @@ class ThaiCostume(Costume):
 
 
 
-class PartyCostume(Costume):
+class PartyCostumer(Costumer):
     def category(self):
         return "ชุดปาร์ตี้"
 
@@ -129,7 +129,7 @@ class PartyCostume(Costume):
         return None
 
 
-class CustomCostume(Costume):
+class CustomCostumer(Costumer):
     def __init__(self, code, name, size, price_per_day, deposit=0, category_name="ชุดอื่นๆ", available=True):
         super().__init__(code, name, size, price_per_day, deposit, available)
         self.__category_name = category_name
@@ -141,19 +141,19 @@ class CustomCostume(Costume):
         return self.price_per_day * days
 
 
-COSTUME_CLASSES = {
-    "ชุดแต่งงาน": WeddingCostume,
-    "ชุดไทย": ThaiCostume,
-    "ชุดปาร์ตี้": PartyCostume,
+COSTUMER_CLASSES = {
+    "ชุดแต่งงาน": WeddingCostumer,
+    "ชุดไทย": ThaiCostumer,
+    "ชุดปาร์ตี้": PartyCostumer,
 }
 
 
-def build_costume(code, category, name, size, price_per_day, deposit, available=True):
-    """โรงงานสร้าง Costume ที่ถูกคลาส จาก category ที่เก็บไว้ (ใช้ทั้งตอนสร้างใหม่และตอนโหลดจาก DB)"""
-    cls = COSTUME_CLASSES.get(category)
+def build_costumer(code, category, name, size, price_per_day, deposit, available=True):
+    """โรงงานสร้าง Costumer ที่ถูกคลาส จาก category ที่เก็บไว้ (ใช้ทั้งตอนสร้างใหม่และตอนโหลดจาก DB)"""
+    cls = COSTUMER_CLASSES.get(category)
     if cls is not None:
         return cls(code, name, size, price_per_day, deposit, available)
-    return CustomCostume(code, name, size, price_per_day, deposit, category_name=category, available=available)
+    return CustomCostumer(code, name, size, price_per_day, deposit, category_name=category, available=available)
 
 class Customer:
     def __init__(self, customer_id, name, phone):
@@ -188,10 +188,10 @@ class Customer:
 
 
 class Rental:
-    def __init__(self, rental_id, customer, costume, days, fee, returned=False):
+    def __init__(self, rental_id, customer, costumer, days, fee, returned=False):
         self.__rental_id = rental_id
         self.__customer = customer
-        self.__costume = costume
+        self.__costumer = costumer
         self.__days = days
         self.__fee = fee
         self.__returned = returned
@@ -205,8 +205,8 @@ class Rental:
         return self.__customer
 
     @property
-    def costume(self):
-        return self.__costume
+    def costumer(self):
+        return self.__costumer
 
     @property
     def days(self):
@@ -234,7 +234,7 @@ class Database:
     def _create_tables(self):
         self.__conn.executescript(
             """
-            CREATE TABLE IF NOT EXISTS costumes (
+            CREATE TABLE IF NOT EXISTS costumers2 (
                 code TEXT PRIMARY KEY,
                 category TEXT NOT NULL,
                 name TEXT NOT NULL,
@@ -251,7 +251,7 @@ class Database:
             CREATE TABLE IF NOT EXISTS rentals (
                 rental_id TEXT PRIMARY KEY,
                 customer_id TEXT NOT NULL,
-                costume_code TEXT NOT NULL,
+                costumer_code2 TEXT NOT NULL,
                 days INTEGER NOT NULL,
                 fee REAL NOT NULL,
                 returned INTEGER NOT NULL
@@ -274,24 +274,24 @@ class Database:
         self.__conn.commit()
 
 
-    def fetch_costumes(self):
+    def fetch_costumers(self):
         return self.__conn.execute(
-            "SELECT code, category, name, size, price_per_day, deposit, available FROM costumes ORDER BY code"
+            "SELECT code, category, name, size, price_per_day, deposit, available FROM costumers2 ORDER BY code"
         ).fetchall()
 
-    def upsert_costume(self, costume):
+    def upsert_costumer(self, costumer):
         self.__conn.execute(
-            "INSERT OR REPLACE INTO costumes (code, category, name, size, price_per_day, deposit, available) "
+            "INSERT OR REPLACE INTO costumers2 (code, category, name, size, price_per_day, deposit, available) "
             "VALUES (?, ?, ?, ?, ?, ?, ?)",
             (
-                costume.code, costume.category(), costume.name, costume.size,
-                costume.price_per_day, costume.deposit, int(costume.available),
+                costumer.code, costumer.category(), costumer.name, costumer.size,
+                costumer.price_per_day, costumer.deposit, int(costumer.available),
             ),
         )
         self.__conn.commit()
 
-    def delete_costume(self, code):
-        self.__conn.execute("DELETE FROM costumes WHERE code=?", (code,))
+    def delete_costumer(self, code):
+        self.__conn.execute("DELETE FROM costumers2 WHERE code=?", (code,))
         self.__conn.commit()
 
   
@@ -314,15 +314,15 @@ class Database:
     # ---------- rentals ----------
     def fetch_rentals(self):
         return self.__conn.execute(
-            "SELECT rental_id, customer_id, costume_code, days, fee, returned FROM rentals ORDER BY rental_id"
+            "SELECT rental_id, customer_id, costumer_code2, days, fee, returned FROM rentals ORDER BY rental_id"
         ).fetchall()
 
     def upsert_rental(self, rental):
         self.__conn.execute(
-            "INSERT OR REPLACE INTO rentals (rental_id, customer_id, costume_code, days, fee, returned) "
+            "INSERT OR REPLACE INTO rentals (rental_id, customer_id, costumer_code2, days, fee, returned) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (
-                rental.rental_id, rental.customer.customer_id, rental.costume.code,
+                rental.rental_id, rental.customer.customer_id, rental.costumer.code,
                 rental.days, rental.fee, int(rental.returned),
             ),
         )
@@ -333,10 +333,10 @@ class RentalShop:
     def __init__(self, name, db: Database):
         self.__name = name
         self.__db = db
-        self.__costumes = {}
+        self.__costumers = {}
         self.__customers = {}
         self.__rentals = {}
-        self.__next_costume_no = 1
+        self.__next_costumer_no = 1
         self.__next_customer_no = 1
         self.__next_rental_no = 1
         self._load_from_db()
@@ -347,67 +347,67 @@ class RentalShop:
 
 
     def _load_from_db(self):
-        for code, category, name, size, price, deposit, available in self.__db.fetch_costumes():
-            costume = build_costume(code, category, name, size, price, deposit, bool(available))
-            self.__costumes[code] = costume
-            self.__next_costume_no = max(self.__next_costume_no, int(code[1:]) + 1)
+        for code, category, name, size, price, deposit, available in self.__db.fetch_costumers():
+            costumer = build_costumer(code, category, name, size, price, deposit, bool(available))
+            self.__costumers[code] = costumer
+            self.__next_costumer_no = max(self.__next_costumer_no, int(code[1:]) + 1)
 
         for customer_id, name, phone in self.__db.fetch_customers():
             self.__customers[customer_id] = Customer(customer_id, name, phone)
             self.__next_customer_no = max(self.__next_customer_no, int(customer_id[1:]) + 1)
 
-        for rental_id, customer_id, costume_code, days, fee, returned in self.__db.fetch_rentals():
+        for rental_id, customer_id, costumer_code, days, fee, returned in self.__db.fetch_rentals():
             customer = self.__customers.get(customer_id)
-            costume = self.__costumes.get(costume_code)
-            if customer is None or costume is None:
+            costumer = self.__costumers.get(costumer_code)
+            if customer is None or costumer is None:
                 continue  # ข้อมูลกำพร้า (ถูกลบไปแล้ว) -> ข้าม
-            self.__rentals[rental_id] = Rental(rental_id, customer, costume, days, fee, bool(returned))
+            self.__rentals[rental_id] = Rental(rental_id, customer, costumer, days, fee, bool(returned))
             self.__next_rental_no = max(self.__next_rental_no, int(rental_id[1:]) + 1)
 
     def custom_categories(self):
         """ประเภทชุดที่ผู้ใช้พิมพ์เพิ่มเอง (ไม่ใช่ 3 ประเภทหลัก) เอาไว้เติมดรอปดาวน์ตอนเปิดแอป"""
         seen = []
-        for c in self.__costumes.values():
+        for c in self.__costumers.values():
             cat = c.category()
-            if cat not in COSTUME_CLASSES and cat not in seen:
+            if cat not in COSTUMER_CLASSES and cat not in seen:
                 seen.append(cat)
         return seen
 
-    def add_costume(self, costume_type, name, size, price_per_day, deposit=0):
-        code = f"C{self.__next_costume_no:03d}"
-        self.__next_costume_no += 1
-        costume = build_costume(code, costume_type, name, size, price_per_day, deposit)
-        self.__costumes[code] = costume
-        self.__db.upsert_costume(costume)  # บันทึกลง SQLite ทันที
-        return costume
+    def add_costumer(self, costumer_type, name, size, price_per_day, deposit=0):
+        code = f"C{self.__next_costumer_no:03d}"
+        self.__next_costumer_no += 1
+        costumer = build_costumer(code, costumer_type, name, size, price_per_day, deposit)
+        self.__costumers[code] = costumer
+        self.__db.upsert_costumer(costumer)  # บันทึกลง SQLite ทันที
+        return costumer
 
-    def persist_costume(self, costume):
+    def persist_costumer(self, costumer):
         """ใช้เมื่อแก้ไขข้อมูลชุดที่มีอยู่แล้ว (ผ่าน property setter) แล้วต้องการบันทึกลง SQLite"""
-        self.__db.upsert_costume(costume)
+        self.__db.upsert_costumer(costumer)
 
-    def remove_costume(self, code):
-        costume = self.__costumes.get(code)
-        if costume is None:
+    def remove_costumer(self, code):
+        costumer = self.__costumers.get(code)
+        if costumer is None:
             raise ValueError("ไม่พบชุด")
-        if not costume.available:
+        if not costumer.available:
             raise ValueError("ชุดนี้ถูกเช่าอยู่ ลบไม่ได้")
-        del self.__costumes[code]
-        self.__db.delete_costume(code)
+        del self.__costumers[code]
+        self.__db.delete_costumer(code)
 
-    def search_costumes(self, keyword=""):
+    def search_costumers(self, keyword=""):
         keyword = keyword.strip().lower()
         return [
-            c for c in self.__costumes.values()
+            c for c in self.__costumers.values()
             if keyword in c.name.lower()
             or keyword in c.category().lower()
             or keyword in c.code.lower()
         ]
 
-    def all_costumes(self):
-        return list(self.__costumes.values())
+    def all_costumers(self):
+        return list(self.__costumers.values())
 
-    def available_costumes(self):
-        return [c for c in self.__costumes.values() if c.available]
+    def available_costumers(self):
+        return [c for c in self.__costumers.values() if c.available]
 
     def add_customer(self, name, phone):
         cid = f"U{self.__next_customer_no:03d}"
@@ -444,44 +444,44 @@ class RentalShop:
         del self.__customers[customer_id]
         self.__db.delete_customer(customer_id)
 
-    def rent_costume(self, customer_id, costume_code, days):
+    def rent_costumer(self, customer_id, costumer_code, days):
         customer = self.__customers.get(customer_id)
         if customer is None:
             raise ValueError("ไม่พบลูกค้า")
 
-        costume = self.__costumes.get(costume_code)
-        if costume is None:
+        costumer = self.__costumers.get(costumer_code)
+        if costumer is None:
             raise ValueError("ไม่พบชุด")
-        if not costume.available:
+        if not costumer.available:
             raise ValueError("ชุดนี้ถูกเช่าอยู่แล้ว")
 
         days = int(days)
         if days <= 0:
             raise ValueError("จำนวนวันต้องมากกว่า 0")
 
-        fee = costume.calculate_rental_fee(days)
+        fee = costumer.calculate_rental_fee(days)
 
         rental_id = f"R{self.__next_rental_no:03d}"
         self.__next_rental_no += 1
-        rental = Rental(rental_id, customer, costume, days, fee)
+        rental = Rental(rental_id, customer, costumer, days, fee)
         self.__rentals[rental_id] = rental
-        costume.mark_rented()
+        costumer.mark_rented()
 
         self.__db.upsert_rental(rental)
-        self.__db.upsert_costume(costume)  
+        self.__db.upsert_costumer(costumer)  
         return rental
 
-    def return_costume(self, rental_id):
+    def return_costumer(self, rental_id):
         rental = self.__rentals.get(rental_id)
         if rental is None:
             raise ValueError("ไม่พบรายการเช่านี้")
         if rental.returned:
             raise ValueError("รายการนี้คืนไปแล้ว")
         rental.mark_returned()
-        rental.costume.mark_returned()
+        rental.costumer.mark_returned()
 
         self.__db.upsert_rental(rental)
-        self.__db.upsert_costume(rental.costume)  
+        self.__db.upsert_costumer(rental.costumer)  
         return rental
 
     def all_rentals(self):
@@ -493,21 +493,21 @@ def seed_shop(shop: "RentalShop") -> None:
     เรียกผ่านเมธอดจริงของ RentalShop ทุกจุด (ไม่ยัดข้อมูลตรงๆ) เพื่อให้ผ่านการ
     ตรวจสอบ/คำนวณเดียวกับตอนผู้ใช้กรอกฟอร์มเป๊ะ ๆ และให้ผลตรงกับเวอร์ชันเว็บ
     เรียกครั้งเดียวตอนฐานข้อมูลยังไม่มีข้อมูลเลยเท่านั้น (ดู is_seeded ในส่วน main)"""
-    w1 = shop.add_costume("ชุดแต่งงาน", "ชุดเจ้าสาวขาวลูกไม้", "M", 1800, 3000)
-    shop.add_costume("ชุดแต่งงาน", "ชุดเจ้าบ่าวสูทกรมท่า", "L", 1500, 2500)
-    shop.add_costume("ชุดไทย", "ชุดไทยจักรีสีทอง", "S", 900, 1000)
-    shop.add_costume("ชุดไทย", "ชุดไทยศรีอยุธยาสีชมพู", "M", 850, 1000)
-    shop.add_costume("ชุดปาร์ตี้", "ชุดปาร์ตี้เซคควินแดง", "M", 500, 0)
-    shop.add_costume("ชุดปาร์ตี้", "ชุดฮาโลวีนแม่มด", "L", 450, 0)
+    w1 = shop.add_costumer("ชุดแต่งงาน", "ชุดเจ้าสาวขาวลูกไม้", "M", 1800, 3000)
+    shop.add_costumer("ชุดแต่งงาน", "ชุดเจ้าบ่าวสูทกรมท่า", "L", 1500, 2500)
+    shop.add_costumer("ชุดไทย", "ชุดไทยจักรีสีทอง", "S", 900, 1000)
+    shop.add_costumer("ชุดไทย", "ชุดไทยศรีอยุธยาสีชมพู", "M", 850, 1000)
+    shop.add_costumer("ชุดปาร์ตี้", "ชุดปาร์ตี้เซคควินแดง", "M", 500, 0)
+    shop.add_costumer("ชุดปาร์ตี้", "ชุดฮาโลวีนแม่มด", "L", 450, 0)
 
     u1 = shop.add_customer("สมชาย ใจดี", "0891234567")
     u2 = shop.add_customer("วรรณา สุขใจ", "0898765432")
     u3 = shop.add_customer("ธนกร มั่งมี", "0812223333")
 
-    shop.rent_costume(u1.customer_id, "C002", 2)      # กำลังเช่าอยู่
-    shop.rent_costume(u2.customer_id, "C006", 1)       # กำลังเช่าอยู่
-    r3 = shop.rent_costume(u3.customer_id, w1.code, 3)  # จะคืนด้านล่าง
-    shop.return_costume(r3.rental_id)                  # คืนแล้ว (โชว์ประวัติ)
+    shop.rent_costumer(u1.customer_id, "C002", 2)      # กำลังเช่าอยู่
+    shop.rent_costumer(u2.customer_id, "C006", 1)       # กำลังเช่าอยู่
+    r3 = shop.rent_costumer(u3.customer_id, w1.code, 3)  # จะคืนด้านล่าง
+    shop.return_costumer(r3.rental_id)                  # คืนแล้ว (โชว์ประวัติ)
 
 
 
@@ -627,9 +627,9 @@ GOOGLE_FONT_LINK = (
 st.markdown(GOOGLE_FONT_LINK + CUSTOM_CSS, unsafe_allow_html=True)
 
 
-_total_costumes = len(shop.all_costumes())
-_available = len(shop.available_costumes())
-_rented = _total_costumes - _available
+_total_costumers = len(shop.all_costumers())
+_available = len(shop.available_costumers())
+_rented = _total_costumers - _available
 _total_customers = len(shop.all_customers())
 _active_rentals = len([r for r in shop.all_rentals() if not r.returned])
 
@@ -642,10 +642,10 @@ HANGER_ICON = (
 
 HERO_HTML = (
     "<div class='hero'>"
-    "<div class='hero-mark'>" + HANGER_ICON + "<span class='hero-mark-text'>COSTUME RENTAL SHOP</span></div>"
+    "<div class='hero-mark'>" + HANGER_ICON + "<span class='hero-mark-text'>COSTUMER RENTAL SHOP</span></div>"
     "<div class='hero-title'>จัดการร้านเช่าชุดอย่างเป็นระบบ</div>"
     "<div class='spec-bar'>"
-    f"<div class='spec-item'><div class='spec-label'>ชุดทั้งหมด</div><div class='spec-value'>{_total_costumes}</div><div class='spec-sub'>รายการในคลัง</div></div>"
+    f"<div class='spec-item'><div class='spec-label'>ชุดทั้งหมด</div><div class='spec-value'>{_total_costumers}</div><div class='spec-sub'>รายการในคลัง</div></div>"
     f"<div class='spec-item'><div class='spec-label'>ชุดว่าง</div><div class='spec-value'>{_available}</div><div class='spec-sub'>พร้อมให้เช่า</div></div>"
     f"<div class='spec-item'><div class='spec-label'>กำลังเช่าอยู่</div><div class='spec-value'>{_rented}</div><div class='spec-sub'>ชุดที่ถูกยืมออก</div></div>"
     f"<div class='spec-item'><div class='spec-label'>ลูกค้า</div><div class='spec-value'>{_total_customers}</div><div class='spec-sub'>คนในระบบ</div></div>"
@@ -654,7 +654,7 @@ HERO_HTML = (
 )
 st.markdown(HERO_HTML, unsafe_allow_html=True)
 
-tab_costume, tab_customer, tab_rental = st.tabs(["คลังชุด", "ลูกค้า", "เช่า / คืนชุด"])
+tab_costumer, tab_customer, tab_rental = st.tabs(["คลังชุด", "ลูกค้า", "เช่า / คืนชุด"])
 
 
 def section_heading(title, subtitle, tag, tone="indigo"):
@@ -669,14 +669,14 @@ def section_heading(title, subtitle, tag, tone="indigo"):
     )
 
 
-def costumes_dataframe(costumes):
+def costumers_dataframe(costumers):
     return pd.DataFrame([
         {
             "รหัส": c.code, "ประเภท": c.category(), "ชื่อชุด": c.name,
             "ขนาด": c.size, "ราคา/วัน": c.price_per_day, "มัดจำ": c.deposit,
             "สถานะ": "ว่าง" if c.available else "ถูกเช่าอยู่",
         }
-        for c in costumes
+        for c in costumers
     ])
 
 
@@ -688,15 +688,15 @@ if "custom_categories" not in ss:
     ss.custom_categories = shop.custom_categories()
 
 if "pending_type" in ss:
-    ss.costume_type_select = ss.pop("pending_type")
+    ss.costumer_type_select = ss.pop("pending_type")
     ss.adding_new_type = False
     ss.pop("new_type_select", None)
 
 
 def _on_type_change():
-    if ss.costume_type_select == NEW_TYPE_OPTION:
+    if ss.costumer_type_select == NEW_TYPE_OPTION:
         ss.adding_new_type = True
-        ss.costume_type_select = list(COSTUME_CLASSES)[0]
+        ss.costumer_type_select = list(COSTUMER_CLASSES)[0]
 
 
 def _cancel_new_type():
@@ -704,14 +704,14 @@ def _cancel_new_type():
     ss.pop("new_type_select", None)
 
 
-with tab_costume:
-    section_heading("เพิ่มชุดใหม่", "เพิ่มรายการชุดเข้าสู่คลังและกำหนดราคาเช่า", "ADD COSTUME")
+with tab_costumer:
+    section_heading("เพิ่มชุดใหม่", "เพิ่มรายการชุดเข้าสู่คลังและกำหนดราคาเช่า", "ADD COSTUMER")
     with st.container(border=True):
-        type_options = list(COSTUME_CLASSES) + ss.custom_categories
+        type_options = list(COSTUMER_CLASSES) + ss.custom_categories
 
         if ss.adding_new_type:
             tcol, bcol = st.columns([5, 1], vertical_alignment="bottom")
-            costume_type = tcol.selectbox(
+            costumer_type = tcol.selectbox(
                 "ประเภท (พิมพ์ชื่อประเภทใหม่แล้วกด Enter)",
                 type_options,
                 index=None,
@@ -721,17 +721,17 @@ with tab_costume:
             )
             bcol.button("ยกเลิก", on_click=_cancel_new_type)
         else:
-            costume_type = st.selectbox(
+            costumer_type = st.selectbox(
                 "ประเภท",
                 type_options + [NEW_TYPE_OPTION],
-                key="costume_type_select",
+                key="costumer_type_select",
                 on_change=_on_type_change,
             )
 
-        if "costume_msg" in ss:
-            st.success(ss.pop("costume_msg"))
+        if "costumer_msg" in ss:
+            st.success(ss.pop("costumer_msg"))
 
-        with st.form("add_costume_form", clear_on_submit=True, border=False):
+        with st.form("add_costumer_form", clear_on_submit=True, border=False):
             c2, c3, c4, c5 = st.columns(4)
             name = c2.text_input("ชื่อชุด")
             size = c3.text_input("ขนาด")
@@ -742,23 +742,23 @@ with tab_costume:
                 try:
                     if not name or not size:
                         raise ValueError("กรอกชื่อและขนาดให้ครบ")
-                    final_type = (costume_type or "").strip()
+                    final_type = (costumer_type or "").strip()
                     if not final_type or final_type == NEW_TYPE_OPTION:
                         raise ValueError("พิมพ์ชื่อประเภทใหม่ในช่องประเภท แล้วกด Enter ก่อน")
 
-                    shop.add_costume(final_type, name, size, price, deposit)
-                    if final_type not in COSTUME_CLASSES and final_type not in ss.custom_categories:
+                    shop.add_costumer(final_type, name, size, price, deposit)
+                    if final_type not in COSTUMER_CLASSES and final_type not in ss.custom_categories:
                         ss.custom_categories.append(final_type)
                     ss.pending_type = final_type
-                    ss.costume_msg = f"เพิ่มชุดสำเร็จ (ประเภท: {final_type})"
+                    ss.costumer_msg = f"เพิ่มชุดสำเร็จ (ประเภท: {final_type})"
                     st.rerun()
                 except ValueError as e:
                     st.error(str(e))
 
     section_heading("คลังชุด", "ค้นหาและตรวจสอบสถานะชุดทั้งหมดในระบบ", "INVENTORY", "teal")
-    keyword = st.text_input("ค้นหาชื่อ / ประเภท / รหัสชุด", key="search_costume", placeholder="พิมพ์คำค้นหา...")
-    costumes = shop.search_costumes(keyword) if keyword else shop.all_costumes()
-    st.dataframe(costumes_dataframe(costumes), width='stretch', hide_index=True)
+    keyword = st.text_input("ค้นหาชื่อ / ประเภท / รหัสชุด", key="search_costumer", placeholder="พิมพ์คำค้นหา...")
+    costumers = shop.search_costumers(keyword) if keyword else shop.all_costumers()
+    st.dataframe(costumers_dataframe(costumers), width='stretch', hide_index=True)
 
     section_heading("จัดการข้อมูลชุด", "แก้ไขรายละเอียดหรือลบชุดที่ว่างออกจากระบบ", "MANAGE", "pink")
     manage_left, manage_right = st.columns(2, gap="large")
@@ -767,13 +767,13 @@ with tab_costume:
             st.markdown("<span class='balanced-panel'></span>", unsafe_allow_html=True)
             st.subheader("ลบชุด")
             st.markdown("<div class='panel-help'>ลบได้เฉพาะชุดที่มีสถานะว่างและไม่ได้ถูกเช่าอยู่</div>", unsafe_allow_html=True)
-            if costumes:
-                codes = [c.code for c in shop.all_costumes() if c.available]
+            if costumers:
+                codes = [c.code for c in shop.all_costumers() if c.available]
                 if codes:
                     del_code = st.selectbox("เลือกรหัสชุดที่จะลบ (เฉพาะชุดว่าง)", [""] + codes)
                     if st.button("ลบชุดที่เลือก", use_container_width=True) and del_code:
                         try:
-                            shop.remove_costume(del_code)
+                            shop.remove_costumer(del_code)
                             st.success(f"ลบชุด {del_code} แล้ว")
                             st.rerun()
                         except ValueError as e:
@@ -788,32 +788,32 @@ with tab_costume:
             st.markdown("<span class='balanced-panel'></span>", unsafe_allow_html=True)
             st.subheader("แก้ไขชุด")
             st.markdown("<div class='panel-help'>เลือกรหัสชุดเพื่อแก้ไขชื่อ ขนาด ราคาเช่า และเงินมัดจำ</div>", unsafe_allow_html=True)
-            if "clear_edit_costume" in ss:
-                ss.edit_costume_select = ""
-                del ss["clear_edit_costume"]
-            if "edit_costume_msg" in ss:
-                st.success(ss.pop("edit_costume_msg"))
+            if "clear_edit_costumer" in ss:
+                ss.edit_costumer_select = ""
+                del ss["clear_edit_costumer"]
+            if "edit_costumer_msg" in ss:
+                st.success(ss.pop("edit_costumer_msg"))
 
-            all_codes = [c.code for c in shop.all_costumes()]
-            edit_code = st.selectbox("เลือกรหัสชุดที่จะแก้ไข", [""] + all_codes, key="edit_costume_select")
+            all_codes = [c.code for c in shop.all_costumers()]
+            edit_code = st.selectbox("เลือกรหัสชุดที่จะแก้ไข", [""] + all_codes, key="edit_costumer_select")
             if edit_code:
-                costume_obj = next(c for c in shop.all_costumes() if c.code == edit_code)
-                with st.form(f"edit_costume_form_{edit_code}"):
+                costumer_obj = next(c for c in shop.all_costumers() if c.code == edit_code)
+                with st.form(f"edit_costumer_form_{edit_code}"):
                     ec1, ec2 = st.columns(2)
                     ec3, ec4 = st.columns(2)
-                    new_name = ec1.text_input("ชื่อชุด", value=costume_obj.name)
-                    new_size = ec2.text_input("ขนาด", value=costume_obj.size)
-                    new_price = ec3.number_input("ราคา/วัน", min_value=0.0, step=50.0, value=costume_obj.price_per_day)
-                    new_deposit = ec4.number_input("มัดจำ", min_value=0.0, step=100.0, value=costume_obj.deposit)
+                    new_name = ec1.text_input("ชื่อชุด", value=costumer_obj.name)
+                    new_size = ec2.text_input("ขนาด", value=costumer_obj.size)
+                    new_price = ec3.number_input("ราคา/วัน", min_value=0.0, step=50.0, value=costumer_obj.price_per_day)
+                    new_deposit = ec4.number_input("มัดจำ", min_value=0.0, step=100.0, value=costumer_obj.deposit)
                     if st.form_submit_button("บันทึกการแก้ไข", use_container_width=True):
                         try:
-                            costume_obj.name = new_name
-                            costume_obj.size = new_size
-                            costume_obj.price_per_day = new_price
-                            costume_obj.deposit = new_deposit
-                            shop.persist_costume(costume_obj)
-                            ss.edit_costume_msg = f"แก้ไขชุด {edit_code} สำเร็จ"
-                            ss.clear_edit_costume = True
+                            costumer_obj.name = new_name
+                            costumer_obj.size = new_size
+                            costumer_obj.price_per_day = new_price
+                            costumer_obj.deposit = new_deposit
+                            shop.persist_costumer(costumer_obj)
+                            ss.edit_costumer_msg = f"แก้ไขชุด {edit_code} สำเร็จ"
+                            ss.clear_edit_costumer = True
                             st.rerun()
                         except ValueError as e:
                             st.error(str(e))
@@ -908,27 +908,27 @@ with tab_rental:
     section_heading("ทำรายการเช่าชุด", "เลือกลูกค้า ชุดที่ว่าง และจำนวนวันที่ต้องการเช่า", "NEW RENTAL")
     with st.container(border=True):
         customer_options = {f"{c.customer_id} - {c.name}": c.customer_id for c in shop.all_customers()}
-        costume_options = {f"{c.code} - {c.name} ({c.category()})": c.code for c in shop.available_costumes()}
+        costumer_options = {f"{c.code} - {c.name} ({c.category()})": c.code for c in shop.available_costumers()}
 
         with st.form("rent_form", border=False):
             rc1, rc2, rc3 = st.columns(3)
             customer_label = rc1.selectbox("ลูกค้า", [""] + list(customer_options.keys()))
-            costume_label = rc2.selectbox("ชุด (เฉพาะที่ว่าง)", [""] + list(costume_options.keys()))
+            costumer_label = rc2.selectbox("ชุด (เฉพาะที่ว่าง)", [""] + list(costumer_options.keys()))
             rent_days = rc3.number_input("จำนวนวัน", min_value=1, value=1, step=1)
             submitted = st.form_submit_button("ยืนยันเช่า")
             if submitted:
                 try:
-                    if not customer_label or not costume_label:
+                    if not customer_label or not costumer_label:
                         raise ValueError("กรุณาเลือกลูกค้าและชุด")
-                    rental = shop.rent_costume(
-                        customer_options[customer_label], costume_options[costume_label], rent_days
+                    rental = shop.rent_costumer(
+                        customer_options[customer_label], costumer_options[costumer_label], rent_days
                     )
                     success_msg = (
-                        f"{rental.rental_id}: {rental.customer.name} เช่า {rental.costume.name} "
+                        f"{rental.rental_id}: {rental.customer.name} เช่า {rental.costumer.name} "
                         f"{rental.days} วัน = {rental.fee:.0f} บาท"
                     )
                     # POLYMORPHISM: แต่ละคลาสชุดมีข้อความส่วนลด/โปรโมชั่นของตัวเอง (หรือไม่มีก็ได้)
-                    note = rental.costume.rental_note(rental.days)
+                    note = rental.costumer.rental_note(rental.days)
                     if note:
                         success_msg += f" ({note})"
                     st.success(success_msg)
@@ -939,7 +939,7 @@ with tab_rental:
     rentals = shop.all_rentals()
     rentals_df = pd.DataFrame([
         {
-            "รหัสเช่า": r.rental_id, "ลูกค้า": r.customer.name, "ชุด": r.costume.name,
+            "รหัสเช่า": r.rental_id, "ลูกค้า": r.customer.name, "ชุด": r.costumer.name,
             "จำนวนวัน": r.days, "ค่าเช่า": r.fee,
             "สถานะ": "คืนแล้ว" if r.returned else "กำลังเช่า",
         }
@@ -964,7 +964,7 @@ with tab_rental:
             return_id = st.selectbox("เลือกรหัสเช่าที่จะคืน", [""] + active_ids)
             if st.button("คืนชุด", use_container_width=True) and return_id:
                 try:
-                    shop.return_costume(return_id)
+                    shop.return_costumer(return_id)
                     st.success(f"คืนชุดของรายการ {return_id} แล้ว")
                     st.rerun()
                 except ValueError as e:
