@@ -824,7 +824,7 @@ with tab_costume:
 
 
 with tab_customer:
-    section_heading("เพิ่มลูกค้า", "บันทึกข้อมูลลูกค้าใหม่เข้าสู่ระบบ", "NEW CUSTOMER")
+    section_heading("เพิ่มลูกค้า", "บันทึกข้อมูลลูกค้าใหม่เข้าสู่ระบบ", "")
     with st.container(border=True):
         with st.form("add_customer_form", clear_on_submit=True, border=False):
             c1, c2 = st.columns(2)
@@ -842,7 +842,7 @@ with tab_customer:
                 except ValueError as e:
                     st.error(str(e))
 
-    section_heading("รายชื่อลูกค้า", "ค้นหาและตรวจสอบข้อมูลลูกค้าทั้งหมดในระบบ", "CUSTOMERS", "teal")
+    section_heading("รายชื่อลูกค้า", "ค้นหาและตรวจสอบข้อมูลลูกค้าทั้งหมดในระบบ", "", "teal")
     cust_keyword = st.text_input("ค้นหาชื่อ / เบอร์โทร / รหัสลูกค้า", key="search_customer", placeholder="พิมพ์คำค้นหา...")
     filtered_customers = shop.search_customers(cust_keyword) if cust_keyword else shop.all_customers()
     customers_df = pd.DataFrame([
@@ -851,7 +851,7 @@ with tab_customer:
     ])
     st.dataframe(customers_df, width='stretch', hide_index=True)
 
-    section_heading("จัดการข้อมูลลูกค้า", "แก้ไขข้อมูลหรือลบลูกค้าออกจากระบบ", "MANAGE", "pink")
+    section_heading("จัดการข้อมูลลูกค้า", "แก้ไขข้อมูลหรือลบลูกค้าออกจากระบบ", "", "pink")
     cust_manage_left, cust_manage_right = st.columns(2, gap="large")
     with cust_manage_left:
         with st.container(border=True):
@@ -906,7 +906,7 @@ with tab_customer:
 
 # ---------------- แท็บ: เช่า / คืนชุด ----------------
 with tab_rental:
-    section_heading("ทำรายการเช่าชุด", "เลือกลูกค้า ชุดที่ว่าง และจำนวนวันที่ต้องการเช่า", "NEW RENTAL")
+    section_heading("ทำรายการเช่าชุด", "เลือกลูกค้า ชุดที่ว่าง และจำนวนวันที่ต้องการเช่า", "")
     with st.container(border=True):
         customer_options = {f"{c.customer_id} - {c.name}": c.customer_id for c in shop.all_customers()}
         costume_options = {f"{c.code} - {c.name} ({c.category()})": c.code for c in shop.available_costumes()}
@@ -936,7 +936,7 @@ with tab_rental:
                 except ValueError as e:
                     st.error(str(e))
 
-    section_heading("ประวัติการเช่า", "รายการเช่าทั้งหมดและสถานะปัจจุบัน", "HISTORY", "teal")
+    section_heading("ประวัติการเช่า", "รายการเช่าทั้งหมดและสถานะปัจจุบัน", "", "teal")
     rentals = shop.all_rentals()
     rentals_df = pd.DataFrame([
         {
@@ -948,7 +948,7 @@ with tab_rental:
     ])
     st.dataframe(rentals_df, width='stretch', hide_index=True)
 
-    section_heading("คืนชุด", "ปิดรายการเช่าที่คืนชุดเรียบร้อยแล้ว", "RETURN", "pink")
+    section_heading("คืนชุด", "ปิดรายการเช่าที่คืนชุดเรียบร้อยแล้ว", "", "pink")
     active_ids = [r.rental_id for r in rentals if not r.returned]
     returned_count = len(rentals) - len(active_ids)
     total_revenue = sum(r.fee for r in rentals)
