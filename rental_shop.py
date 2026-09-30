@@ -104,7 +104,7 @@ class ThaiCostume(Costume):
     def calculate_rental_fee(self, days):
         total = self.price_per_day * days
         if days >= 3:
-            total *= 0.90  # ลด 10% ถ้าเช่า >= 3 วัน
+            total *= 0.90 
         return total
 
     def rental_note(self, days):
@@ -121,7 +121,7 @@ class PartyCostume(Costume):
     def calculate_rental_fee(self, days):
         if days <= 0:
             return 0
-        return self.price_per_day + (days - 1) * self.price_per_day * 0.5  # วันถัดไปครึ่งราคา
+        return self.price_per_day + (days - 1) * self.price_per_day * 0.5  
 
     def rental_note(self, days):
         if days >= 2:
@@ -311,7 +311,7 @@ class Database:
         self.__conn.execute("DELETE FROM customers WHERE customer_id=?", (customer_id,))
         self.__conn.commit()
 
-    # ---------- rentals ----------
+
     def fetch_rentals(self):
         return self.__conn.execute(
             "SELECT rental_id, customer_id, costume_code, days, fee, returned FROM rentals ORDER BY rental_id"
@@ -360,7 +360,7 @@ class RentalShop:
             customer = self.__customers.get(customer_id)
             costume = self.__costumes.get(costume_code)
             if customer is None or costume is None:
-                continue  # ข้อมูลกำพร้า (ถูกลบไปแล้ว) -> ข้าม
+                continue 
             self.__rentals[rental_id] = Rental(rental_id, customer, costume, days, fee, bool(returned))
             self.__next_rental_no = max(self.__next_rental_no, int(rental_id[1:]) + 1)
 
@@ -378,7 +378,7 @@ class RentalShop:
         self.__next_costume_no += 1
         costume = build_costume(code, costume_type, name, size, price_per_day, deposit)
         self.__costumes[code] = costume
-        self.__db.upsert_costume(costume)  # บันทึกลง SQLite ทันที
+        self.__db.upsert_costume(costume)
         return costume
 
     def persist_costume(self, costume):
@@ -504,10 +504,10 @@ def seed_shop(shop: "RentalShop") -> None:
     u2 = shop.add_customer("วรรณา สุขใจ", "0898765432")
     u3 = shop.add_customer("ธนกร มั่งมี", "0812223333")
 
-    shop.rent_costume(u1.customer_id, "C002", 2)      # กำลังเช่าอยู่
-    shop.rent_costume(u2.customer_id, "C006", 1)       # กำลังเช่าอยู่
-    r3 = shop.rent_costume(u3.customer_id, w1.code, 3)  # จะคืนด้านล่าง
-    shop.return_costume(r3.rental_id)                  # คืนแล้ว (โชว์ประวัติ)
+    shop.rent_costume(u1.customer_id, "C002", 2)     
+    shop.rent_costume(u2.customer_id, "C006", 1)      
+    r3 = shop.rent_costume(u3.customer_id, w1.code, 3)  
+    shop.return_costume(r3.rental_id)                  
 
 
 
@@ -904,7 +904,7 @@ with tab_customer:
                 st.info("เลือกรหัสลูกค้าด้านบนเพื่อเปิดแบบฟอร์มแก้ไข")
 
 
-# ---------------- แท็บ: เช่า / คืนชุด ----------------
+
 with tab_rental:
     section_heading("ทำรายการเช่าชุด", "เลือกลูกค้า ชุดที่ว่าง และจำนวนวันที่ต้องการเช่า", "")
     with st.container(border=True):
@@ -928,7 +928,7 @@ with tab_rental:
                         f"{rental.rental_id}: {rental.customer.name} เช่า {rental.costume.name} "
                         f"{rental.days} วัน = {rental.fee:.0f} บาท"
                     )
-                    # POLYMORPHISM: แต่ละคลาสชุดมีข้อความส่วนลด/โปรโมชั่นของตัวเอง (หรือไม่มีก็ได้)
+        
                     note = rental.costume.rental_note(rental.days)
                     if note:
                         success_msg += f" ({note})"
